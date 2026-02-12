@@ -1,0 +1,47 @@
+graph TB
+    Start([User Request]) --> Orchestrator[Master Orchestrator<br/>gemini-2.5-flash<br/>+ Callbacks + Memory]
+
+    Orchestrator -->|"content creation"| FullWorkflow[Full Content Workflow<br/>SequentialAgent]
+    Orchestrator -->|"text analysis"| Analyzer[Content Analyzer<br/>gemini-2.5-flash]
+
+    subgraph "Phase 1: Research & Draft (Sequential)"
+        FullWorkflow --> Research[Topic Research Agent<br/>google_search<br/>output_key: blog_topic]
+        Research --> Drafter[Content Drafter Agent<br/>reads: blog_topic<br/>output_key: current_content]
+    end
+
+    subgraph "Phase 2: Quality Loop (max 2 iterations)"
+        Drafter --> Quality{Quality Checker<br/>Score >= 70?}
+        Quality -->|No| Improver[Content Improver<br/>Refine Content]
+        Improver --> Quality
+        Quality -->|Yes, exit_loop| Approved[Approved Content]
+    end
+
+    subgraph "Phase 3: Multi-Channel Generation (Parallel)"
+        Approved --> Blog[Blog Post Writer<br/>800-1200 words<br/>output_key: final_blog_post]
+        Approved --> Social[Social Media Creator<br/>LinkedIn, Twitter, Instagram<br/>output_key: social_media_posts]
+        Approved --> Email[Email Newsletter Writer<br/>Subject + Body + CTA<br/>output_key: email_newsletter]
+        Approved --> SEO[SEO Metadata Agent<br/>Meta tags & keywords<br/>output_key: seo_metadata]
+    end
+
+    Blog --> Result([Complete Content Package<br/>All outputs in session state])
+    Social --> Result
+    Email --> Result
+    SEO --> Result
+
+    Analyzer --> AnalysisResult([Analysis Report<br/>Word count + Readability + Hashtags])
+
+    classDef orchestrator fill:#9c27b0,stroke:#333,stroke-width:3px,color:#fff
+    classDef workflow fill:#ff6f00,stroke:#333,stroke-width:2px,color:#fff
+    classDef phase1 fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    classDef phase2 fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    classDef phase3 fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
+    classDef analyzer fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef endpoint fill:#ffd700,stroke:#333,stroke-width:3px,color:#000
+
+    class Orchestrator orchestrator
+    class FullWorkflow workflow
+    class Research,Drafter phase1
+    class Quality,Improver,Approved phase2
+    class Blog,Social,Email,SEO phase3
+    class Analyzer analyzer
+    class Start,Result,AnalysisResult endpoint
