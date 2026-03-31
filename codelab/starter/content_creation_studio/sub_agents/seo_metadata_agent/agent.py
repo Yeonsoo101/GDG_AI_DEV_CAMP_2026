@@ -1,10 +1,9 @@
 from google.adk.agents import Agent
-from google.adk.models.google_llm import Gemini
-from content_creation_studio.config import MODEL_NAME, RETRY_CONFIG
+from content_creation_studio.config import MODEL_NAME
 
 seo_metadata_agent = Agent(
     name="seo_metadata_agent",
-    model=Gemini(model=MODEL_NAME, retry_options=RETRY_CONFIG),
+    model=MODEL_NAME,
     instruction="""
     TODO: #REPLACE-seo-metadata-instruction
     Write an instruction that generates SEO metadata from {{current_content}}:

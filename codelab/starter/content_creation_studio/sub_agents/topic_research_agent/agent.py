@@ -1,11 +1,10 @@
 from google.adk.agents import Agent
-from google.adk.models.google_llm import Gemini
 from google.adk.tools import google_search
-from content_creation_studio.config import MODEL_NAME, RETRY_CONFIG
+from content_creation_studio.config import MODEL_NAME
 
 topic_research_agent = Agent(
     name="topic_research_agent",
-    model=Gemini(model=MODEL_NAME, retry_options=RETRY_CONFIG),
+    model=MODEL_NAME,
     instruction="""
     TODO: #REPLACE-topic-research-instruction
     Write an instruction that tells the agent to:

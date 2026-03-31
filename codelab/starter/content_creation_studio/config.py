@@ -1,23 +1,13 @@
 """
 Shared configuration for the Content Creation Studio agents.
-Centralizes model name and retry settings.
+Centralizes model name and quality thresholds.
 """
 
 import os
-from google.genai import types
 
 # TODO: #REPLACE-model-name
 # Set MODEL_NAME to the string "gemini-2.5-flash".
 MODEL_NAME = None  # Replace this line
-
-
-# TODO: #REPLACE-retry-config
-# Create a RETRY_CONFIG using types.HttpRetryOptions with:
-#   - attempts=5
-#   - exp_base=7
-#   - initial_delay=1
-#   - http_status_codes=[429, 500, 503, 504]
-RETRY_CONFIG = None  # Replace this line
 
 
 # TODO: #REPLACE-quality-thresholds

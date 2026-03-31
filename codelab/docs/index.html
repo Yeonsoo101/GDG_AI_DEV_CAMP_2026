@@ -288,34 +288,25 @@ async for event in runner.run_async(
       <google-codelab-step label="Centralized Configuration" duration="0">
         <p>Open <code>content_creation_studio/config.py</code>. You&#39;ll see three <code># TODO</code> placeholders.</p>
 <h2 is-upgraded>Why centralize configuration?</h2>
-<p>All 9 agents in your system share the same model name and retry settings. Defining them once in <code>config.py</code> means you change a model name in one place instead of nine. <strong>Fill this in first</strong> — every agent file imports <code>MODEL_NAME</code> and <code>RETRY_CONFIG</code> from here.</p>
+<p>All 9 agents share the same model name and quality thresholds. Defining them once in <code>config.py</code> means you change the model in one place instead of nine. <strong>Fill this in first</strong> — every agent file imports <code>MODEL_NAME</code> from here.</p>
 <h2 is-upgraded>Fill in the configuration</h2>
-<p>Replace the three <code>None</code> values with the real implementations:</p>
+<p>Replace the three <code>None</code> values:</p>
 <pre><code language="language-python" class="language-python"># content_creation_studio/config.py
 import os
-from google.genai import types
 
 MODEL_NAME = &#34;gemini-2.5-flash&#34;
-
-RETRY_CONFIG = types.HttpRetryOptions(
-    attempts=5,
-    exp_base=7,
-    initial_delay=1,
-    http_status_codes=[429, 500, 503, 504],
-)
 
 QUALITY_SCORE_THRESHOLD = int(os.getenv(&#34;QUALITY_SCORE_THRESHOLD&#34;, &#34;70&#34;))
 MAX_IMPROVEMENT_ITERATIONS = int(os.getenv(&#34;MAX_IMPROVEMENT_ITERATIONS&#34;, &#34;2&#34;))
 </code></pre>
 <p><strong>What each setting does:</strong></p>
 <ul>
-<li><code>MODEL_NAME</code>: The Gemini model all agents will use.</li>
-<li><code>RETRY_CONFIG</code>: Automatic retry on rate limits (429) and transient server errors. <code>exp_base=7</code> means waits of 1s, 7s, 49s between retries — backing off aggressively to avoid hammering the API.</li>
+<li><code>MODEL_NAME</code>: The Gemini model all agents will use. Passed as a plain string so ADK constructs the model at runtime with the correct backend (Vertex AI on Agent Engine, Gemini API locally).</li>
 <li><code>QUALITY_SCORE_THRESHOLD</code>: The minimum quality score (0-100) content must reach before the improvement loop exits.</li>
 <li><code>MAX_IMPROVEMENT_ITERATIONS</code>: Safety ceiling for the loop — it stops after this many attempts even if quality hasn&#39;t been reached.</li>
 </ul>
 <h2 is-upgraded>Verify</h2>
-<pre><code language="language-bash" class="language-bash">python -c &#34;from content_creation_studio.config import MODEL_NAME, RETRY_CONFIG; print(&#39;Model:&#39;, MODEL_NAME)&#34;
+<pre><code language="language-bash" class="language-bash">python -c &#34;from content_creation_studio.config import MODEL_NAME; print(&#39;Model:&#39;, MODEL_NAME)&#34;
 </code></pre>
 <p>You should see <code>Model: gemini-2.5-flash</code>.</p>
 
@@ -350,13 +341,12 @@ MAX_IMPROVEMENT_ITERATIONS = int(os.getenv(&#34;MAX_IMPROVEMENT_ITERATIONS&#34;,
 <p>Replace the <code>TODO</code> instruction:</p>
 <pre><code language="language-python" class="language-python"># content_creation_studio/sub_agents/topic_research_agent/agent.py
 from google.adk.agents import Agent
-from google.adk.models.google_llm import Gemini
 from google.adk.tools import google_search
-from content_creation_studio.config import MODEL_NAME, RETRY_CONFIG
+from content_creation_studio.config import MODEL_NAME
 
 topic_research_agent = Agent(
     name=&#34;topic_research_agent&#34;,
-    model=Gemini(model=MODEL_NAME, retry_options=RETRY_CONFIG),
+    model=MODEL_NAME,
     instruction=&#34;&#34;&#34;
     You are a topic research expert. Based on the user&#39;s request,
     use search to find trending angles and select the SINGLE BEST specific blog post title.
@@ -368,12 +358,11 @@ topic_research_agent = Agent(
     output_key=&#34;blog_topic&#34;,
 )
 </code></pre>
+<p><strong>Note:</strong> We pass <code>model=MODEL_NAME</code> as a plain string. This lets ADK construct the model object at runtime — using Vertex AI credentials on Agent Engine and your local API key during development — without pickling a pre-configured <code>Gemini</code> object.</p>
 <p><strong>Why </strong></p>
 <p><strong><code>output_key="blog_topic"</code></strong></p>
 <p><strong>?</strong> Without it, the agent&#39;s response exists only as a conversation message. With <code>output_key</code>, ADK automatically writes the response text to <code>session.state["blog_topic"]</code> — making it available to every other agent in the pipeline via <code>&#123;&#123;blog_topic}}</code> templating.</p>
-<p><strong>Why wrap in </strong></p>
-<p><strong><code>Gemini(..., retry_options=RETRY_CONFIG)</code></strong></p>
-<p><strong>?</strong> The bare model name string also works (<code>model="gemini-2.5-flash"</code>), but wrapping it gives us automatic retries on rate limits — essential for multi-agent pipelines that make many sequential API calls.</p>
+<p><strong>Why use the model name string?</strong> Passing <code>model=MODEL_NAME</code> (a plain string) instead of <code>Gemini(model=MODEL_NAME)</code> ensures the model is constructed fresh at runtime on Agent Engine using Vertex AI credentials. Wrapping in <code>Gemini(...)</code> at definition time pickles the object with local API config, which breaks on Agent Engine.</p>
 <h2 is-upgraded>Test the agent</h2>
 <p>In <code>content_creation_studio/agent.py</code>, find the last line and temporarily change it:</p>
 <pre><code language="language-python" class="language-python"># Change this:
@@ -478,7 +467,7 @@ specialist_b_tool = agent_tool.AgentTool(agent=specialist_b)
 
 coordinator = Agent(
     name=&#34;coordinator&#34;,
-    model=Gemini(model=MODEL_NAME),
+    model=MODEL_NAME,
     instruction=&#34;&#34;&#34;
     You are a coordinator. Use your tools to:
     - Delegate task A with the specialist_a tool
@@ -492,7 +481,7 @@ coordinator = Agent(
 <p><code>sub_agents</code> declares a parent-child relationship. The parent LLM can <em>transfer control</em> to a sub-agent. The sub-agent runs in the same session, reads the same state, and its events <strong>propagate</strong> to the outer runner.</p>
 <pre><code language="language-python" class="language-python">orchestrator = Agent(
     name=&#34;orchestrator&#34;,
-    model=Gemini(model=MODEL_NAME),
+    model=MODEL_NAME,
     instruction=&#34;Route content creation to full_content_workflow, analysis to content_analyzer_agent.&#34;,
     sub_agents=[full_content_workflow, content_analyzer_agent],
 )
@@ -628,6 +617,18 @@ coordinator/orchestrator
     → runs topic_research_agent  (writes blog_topic to state)
     → then runs content_drafter_agent  (reads blog_topic from state)
 </code></pre>
+<h2 is-upgraded>Fill in the content drafter</h2>
+<p>Before wiring up the workflow, fill in <code>content_creation_studio/sub_agents/content_drafter_agent/agent.py</code>. Replace the <code>TODO: #REPLACE-content-drafter-instruction</code> placeholder with:</p>
+<pre><code language="language-python" class="language-python">    You are a content writer. Write a blog post: &#123;&#123;blog_topic}}
+
+    Create a draft (400-600 words) with:
+    - Engaging introduction
+    - At least 2 H2 headings
+    - A conclusion section
+
+    Output only the blog post in markdown format.
+</code></pre>
+<p><strong><code>&#123;&#123;blog_topic}}</code></strong> is ADK&#39;s key templating syntax — before calling the model, ADK substitutes it with the value of <code>session.state["blog_topic"]</code> written by <code>topic_research_agent</code>. You&#39;ll learn more about this in Step 10.</p>
 <h2 is-upgraded>Fill in the first workflow</h2>
 <p>Find the <code># TODO: #REPLACE-research-and-draft-workflow</code> comment in <code>content_creation_studio/agent.py</code> and replace:</p>
 <pre><code language="language-python" class="language-python">research_and_draft_workflow = SequentialAgent(
@@ -637,46 +638,37 @@ coordinator/orchestrator
 </code></pre>
 <p>For testing this step, temporarily update the last line of <code>agent.py</code>:</p>
 <pre><code language="language-python" class="language-python"># Change this:
-root_agent = master_orchestrator_agent
+root_agent = topic_research_agent
 
 # To this:
 root_agent = research_and_draft_workflow
 </code></pre>
 <h2 is-upgraded>Test the sequential workflow</h2>
 <pre><code language="language-bash" class="language-bash">adk web --port 8080 --reload_agents
-```text
-
-Enter the prompt:
-
 </code></pre>
-<p>Write a blog about sustainable packaging for eco-conscious millennials</p>
-<pre><code>Watch the **Events** panel — you&#39;ll see `topic_research_agent` fire first, then `content_drafter_agent`. In the **State** tab, both `blog_topic` and `current_content` keys will appear in sequence.
+<p>Enter the prompt:</p>
+<pre><code>Write a blog about sustainable packaging for eco-conscious millennials
+</code></pre>
+<p>Watch the <strong>Events</strong> panel — you&#39;ll see <code>topic_research_agent</code> fire first, then <code>content_drafter_agent</code>. In the <strong>State</strong> tab, both <code>blog_topic</code> and <code>current_content</code> keys will appear in sequence.</p>
+<p><strong>Tip:</strong> Click on any event in the Events panel to inspect the exact request and response sent to the model at that step.</p>
+<p><strong>Before moving on:</strong> Revert <code>root_agent</code> back to <code>topic_research_agent</code> in <code>agent.py</code>.</p>
+<p><strong>Pattern in practice: </strong><code>research_and_draft_workflow</code> is a classic <strong>workflow-driven</strong> pipeline — topic research <em>always</em> runs before drafting, with no LLM making that routing decision. This is exactly the &#34;deterministic steps → Sequential&#34; case from the architecture decision framework you reviewed earlier.</p>
+<p><strong>The key insight:</strong> Use LLM-Driven agents at the <em>boundaries</em> where human intent is ambiguous (the orchestrator that routes between content creation and analysis). Use Workflow-Driven agents <em>inside</em> those boundaries where the steps are well-defined (the pipeline that runs research → draft → quality → publish).</p>
+<p>In your Content Creation Studio:</p>
+<ul>
+<li><code>master_orchestrator_agent</code> → LLM-Driven (routes based on user intent)</li>
+<li><code>full_content_workflow</code> → Workflow-Driven (always: research → quality loop → parallel output)</li>
+<li><code>quality_improvement_loop</code> → Workflow-Driven (always: check → improve, repeat)</li>
+</ul>
 
-&gt; **Tip:** Click on any event in the Events panel to inspect the exact request and response sent to the model at that step.
 
-&gt; **Before moving on:** Remove the temporary `root_agent = research_and_draft_workflow` line from `agent.py`.
-
-&gt; **Pattern in practice:** `research_and_draft_workflow` is a classic **workflow-driven** pipeline — topic research *always* runs before drafting, with no LLM making that routing decision. This is exactly the &#34;deterministic steps → Sequential&#34; case from the architecture decision framework you reviewed earlier.
-
-**The key insight:** Use LLM-Driven agents at the *boundaries* where human intent is ambiguous (the orchestrator that routes between content creation and analysis). Use Workflow-Driven agents *inside* those boundaries where the steps are well-defined (the pipeline that runs research → draft → quality → publish).
-
-In your Content Creation Studio:
-- `master_orchestrator_agent` → LLM-Driven (routes based on user intent)
-- `full_content_workflow` → Workflow-Driven (always: research → quality loop → parallel output)
-- `quality_improvement_loop` → Workflow-Driven (always: check → improve, repeat)
-
----
-
-## Session State — The Content Drafter
-
-Open `content_creation_studio/sub_agents/content_drafter_agent/agent.py`.
-
-### How session state works
-
-Every ADK conversation has a `Session` object with a `state` dictionary. All agents in the same session share this dictionary — it&#39;s how they pass data to each other.
-
-```text
-topic_research_agent
+      </google-codelab-step>
+    
+      <google-codelab-step label="Session State — The Content Drafter" duration="0">
+        <p>Open <code>content_creation_studio/sub_agents/content_drafter_agent/agent.py</code>.</p>
+<h2 is-upgraded>How session state works</h2>
+<p>Every ADK conversation has a <code>Session</code> object with a <code>state</code> dictionary. All agents in the same session share this dictionary — it&#39;s how they pass data to each other.</p>
+<pre><code language="language-text" class="language-text">topic_research_agent
     writes → session.state[&#34;blog_topic&#34;] = &#34;10 Ways to...&#34;
                     ↓
 content_drafter_agent
@@ -685,29 +677,6 @@ content_drafter_agent
 </code></pre>
 <p>The <code>&#123;&#123;key}}</code> syntax in an instruction is ADK&#39;s <strong>key templating</strong> feature. Before calling the model, ADK substitutes <code>&#123;&#123;blog_topic}}</code> with the current value of <code>session.state["blog_topic"]</code>.</p>
 <p>Use <code>&#123;&#123;key?}}</code> (with a <code>?</code>) for optional keys — this prevents errors if the key doesn&#39;t exist yet.</p>
-<h2 is-upgraded>Fill in the agent</h2>
-<pre><code language="language-python" class="language-python"># content_creation_studio/sub_agents/content_drafter_agent/agent.py
-from google.adk.agents import Agent
-from google.adk.models.google_llm import Gemini
-from content_creation_studio.config import MODEL_NAME, RETRY_CONFIG
-
-content_drafter_agent = Agent(
-    name=&#34;content_drafter_agent&#34;,
-    model=Gemini(model=MODEL_NAME, retry_options=RETRY_CONFIG),
-    instruction=&#34;&#34;&#34;
-    You are a content writer. Write a blog post: &#123;&#123;blog_topic}}
-
-    Create a draft (400-600 words) with:
-    - Engaging introduction
-    - At least 2 H2 headings
-    - A conclusion section
-
-    Output only the blog post in markdown format.
-    &#34;&#34;&#34;,
-    tools=[],
-    output_key=&#34;current_content&#34;,
-)
-</code></pre>
 <h2 is-upgraded>What you&#39;ve learned so far</h2>
 <ul>
 <li><code>output_key</code> writes an agent&#39;s response to session state</li>
@@ -735,13 +704,8 @@ content_drafter_agent = Agent(
         → content_improver_agent (sees &#34;QUALITY_THRESHOLD_MET&#34;, calls exit_loop → STOP)
 </code></pre>
 <h2 is-upgraded>Fill in the quality checker</h2>
-<pre><code language="language-python" class="language-python"># content_creation_studio/sub_agents/quality_checker_agent/agent.py
-
-quality_checker_agent = Agent(
-    name=&#34;quality_checker_agent&#34;,
-    model=Gemini(model=MODEL_NAME, retry_options=RETRY_CONFIG),
-    instruction=f&#34;&#34;&#34;
-    You are a content quality analyst. Analyze: &#123;&#123;&#123;&#123;current_content}}}}
+<p>Open <code>content_creation_studio/sub_agents/quality_checker_agent/agent.py</code> and replace the <code>TODO: #REPLACE-quality-checker-instruction</code> placeholder with:</p>
+<pre><code language="language-python" class="language-python">    You are a content quality analyst. Analyze: &#123;&#123;current_content}}
 
     Your job:
     1. Count approximate word count
@@ -754,21 +718,12 @@ quality_checker_agent = Agent(
     Then:
     - IF overall_score &gt;= 70, respond with: &#39;{QUALITY_THRESHOLD_MET}&#39;
     - ELSE, respond with: &#39;Quality score: [score]. Issues: [specific problems]&#39;
-    &#34;&#34;&#34;,
-    tools=[FunctionTool(calculate_content_quality_score)],
-    output_key=&#34;quality_feedback&#34;,
-)
 </code></pre>
-<p><strong>Note on double braces:</strong> Because the instruction is an f-string (starts with <code>f"""</code>), write <code>&#123;&#123;current_content}}</code> — Python converts double braces to single braces, giving ADK the <code>{current_content}</code> it needs.</p>
+<p><strong>Note on double braces:</strong> The instruction is an f-string, so write <code>&#123;&#123;current_content}}</code> — Python converts double braces to single braces, giving ADK the <code>{current_content}</code> it needs for state substitution.</p>
 <h2 is-upgraded>Fill in the content improver</h2>
-<pre><code language="language-python" class="language-python"># content_creation_studio/sub_agents/content_improver_agent/agent.py
-
-content_improver_agent = Agent(
-    name=&#34;content_improver_agent&#34;,
-    model=Gemini(model=MODEL_NAME, retry_options=RETRY_CONFIG),
-    instruction=f&#34;&#34;&#34;
-    Current content: &#123;&#123;&#123;&#123;current_content}}}}
-    Feedback: &#123;&#123;&#123;&#123;quality_feedback}}}}
+<p>Open <code>content_creation_studio/sub_agents/content_improver_agent/agent.py</code> and replace the <code>TODO: #REPLACE-content-improver-instruction</code> placeholder with:</p>
+<pre><code language="language-python" class="language-python">    Current content: &#123;&#123;current_content}}
+    Feedback: &#123;&#123;quality_feedback}}
 
     - IF feedback is &#39;{QUALITY_THRESHOLD_MET}&#39;:
       1. Call the `exit_loop` tool to terminate the loop
@@ -781,10 +736,6 @@ content_improver_agent = Agent(
       * Add a strong conclusion if missing
 
       Output the COMPLETE improved content in markdown.
-    &#34;&#34;&#34;,
-    tools=[exit_loop],
-    output_key=&#34;current_content&#34;,
-)
 </code></pre>
 <h2 is-upgraded>Fill in the LoopAgent</h2>
 <pre><code language="language-python" class="language-python"># content_creation_studio/agent.py
@@ -803,8 +754,11 @@ quality_improvement_loop = LoopAgent(
 )
 root_agent = two_phase_pipeline
 </code></pre>
-<p>Run <code>adk web --port 8080 --reload_agents</code> and enter the same prompt. In the Events panel, you&#39;ll now see multiple passes: research → draft → quality check → improve → quality check → (exit or max reached).</p>
-<p><strong>Before moving on:</strong> Remove the temporary <code>root_agent = two_phase_pipeline</code> line from <code>agent.py</code>.</p>
+<p>Run <code>adk web --port 8080 --reload_agents</code> and enter the prompt:</p>
+<pre><code>Write a blog about sustainable packaging for eco-conscious millennials
+</code></pre>
+<p>In the Events panel, you&#39;ll now see multiple passes: research → draft → quality check → improve → quality check → (exit or max reached).</p>
+<p><strong>Before moving on:</strong> Revert <code>root_agent</code> back to <code>topic_research_agent</code> in <code>agent.py</code>.</p>
 
 
       </google-codelab-step>
@@ -821,12 +775,9 @@ root_agent = two_phase_pipeline
 </code></pre>
 <p><strong>Important:</strong> Each parallel agent must write to a <strong>unique </strong><code>output_key</code>. If two agents share a key, one will overwrite the other&#39;s output.</p>
 <h2 is-upgraded>Fill in all four content agents</h2>
-<p><strong>Blog Post Writer</strong> (<code>sub_agents/blog_post_writer_agent/agent.py</code>):</p>
-<pre><code language="language-python" class="language-python">blog_post_writer_agent = Agent(
-    name=&#34;blog_post_writer_agent&#34;,
-    model=Gemini(model=MODEL_NAME, retry_options=RETRY_CONFIG),
-    instruction=&#34;&#34;&#34;
-    You are a professional blog writer. Create the final polished blog post from: &#123;&#123;current_content}}
+<p>For each agent below, open the corresponding file and replace only the <code>TODO</code> instruction placeholder.</p>
+<p><strong>Blog Post Writer</strong> — open <code>sub_agents/blog_post_writer_agent/agent.py</code>, replace <code>TODO: #REPLACE-blog-post-writer-instruction</code> with:</p>
+<pre><code language="language-python" class="language-python">    You are a professional blog writer. Create the final polished blog post from: &#123;&#123;current_content}}
 
     Enhance it to be publication-ready:
     - Ensure 800-1200 words
@@ -835,17 +786,9 @@ root_agent = two_phase_pipeline
     - Strong call-to-action
 
     Output only the final blog post in markdown.
-    &#34;&#34;&#34;,
-    tools=[],
-    output_key=&#34;final_blog_post&#34;,
-)
 </code></pre>
-<p><strong>Social Media Creator</strong> (<code>sub_agents/social_media_creator_agent/agent.py</code>):</p>
-<pre><code language="language-python" class="language-python">social_media_creator_agent = Agent(
-    name=&#34;social_media_creator_agent&#34;,
-    model=Gemini(model=MODEL_NAME, retry_options=RETRY_CONFIG),
-    instruction=&#34;&#34;&#34;
-    You are a social media specialist. Create posts from: &#123;&#123;current_content}}
+<p><strong>Social Media Creator</strong> — open <code>sub_agents/social_media_creator_agent/agent.py</code>, replace <code>TODO: #REPLACE-social-media-creator-instruction</code> with:</p>
+<pre><code language="language-python" class="language-python">    You are a social media specialist. Create posts from: &#123;&#123;current_content}}
 
     Create:
     1. LinkedIn Post (150-200 words, professional)
@@ -853,17 +796,9 @@ root_agent = two_phase_pipeline
     3. Instagram Caption (100-150 words, with emojis and hashtags)
 
     Format with clear headers for each platform.
-    &#34;&#34;&#34;,
-    tools=[],
-    output_key=&#34;social_media_posts&#34;,
-)
 </code></pre>
-<p><strong>Email Newsletter Writer</strong> (<code>sub_agents/email_newsletter_writer_agent/agent.py</code>):</p>
-<pre><code language="language-python" class="language-python">email_newsletter_writer_agent = Agent(
-    name=&#34;email_newsletter_writer_agent&#34;,
-    model=Gemini(model=MODEL_NAME, retry_options=RETRY_CONFIG),
-    instruction=&#34;&#34;&#34;
-    You are an email marketing specialist. Create a newsletter from: &#123;&#123;current_content}}
+<p><strong>Email Newsletter Writer</strong> — open <code>sub_agents/email_newsletter_writer_agent/agent.py</code>, replace <code>TODO: #REPLACE-email-newsletter-instruction</code> with:</p>
+<pre><code language="language-python" class="language-python">    You are an email marketing specialist. Create a newsletter from: &#123;&#123;current_content}}
 
     Include:
     - Subject Line (compelling, 50-60 chars)
@@ -871,17 +806,9 @@ root_agent = two_phase_pipeline
     - Body (300-400 words with CTA)
 
     Format with clear sections.
-    &#34;&#34;&#34;,
-    tools=[],
-    output_key=&#34;email_newsletter&#34;,
-)
 </code></pre>
-<p><strong>SEO Metadata Agent</strong> (<code>sub_agents/seo_metadata_agent/agent.py</code>):</p>
-<pre><code language="language-python" class="language-python">seo_metadata_agent = Agent(
-    name=&#34;seo_metadata_agent&#34;,
-    model=Gemini(model=MODEL_NAME, retry_options=RETRY_CONFIG),
-    instruction=&#34;&#34;&#34;
-    You are an SEO specialist. Generate metadata based on: &#123;&#123;current_content}}
+<p><strong>SEO Metadata Agent</strong> — open <code>sub_agents/seo_metadata_agent/agent.py</code>, replace <code>TODO: #REPLACE-seo-metadata-instruction</code> with:</p>
+<pre><code language="language-python" class="language-python">    You are an SEO specialist. Generate metadata based on: &#123;&#123;current_content}}
 
     Create:
     1. Meta Title (50-60 chars)
@@ -891,10 +818,6 @@ root_agent = two_phase_pipeline
     5. 5 Related Keywords
 
     Format as readable markdown with bold labels, not JSON.
-    &#34;&#34;&#34;,
-    tools=[],
-    output_key=&#34;seo_metadata&#34;,
-)
 </code></pre>
 <h2 is-upgraded>Fill in the ParallelAgent</h2>
 <pre><code language="language-python" class="language-python"># content_creation_studio/agent.py
@@ -910,8 +833,18 @@ parallel_content_creation = ParallelAgent(
 )
 </code></pre>
 <h2 is-upgraded>Test</h2>
-<p>Run <code>adk web --port 8080 --reload_agents</code> with <code>root_agent = parallel_content_creation</code> (temporarily). Enter any topic. All four <code>output_key</code> values — <code>final_blog_post</code>, <code>social_media_posts</code>, <code>email_newsletter</code>, <code>seo_metadata</code> — should appear in the State tab simultaneously.</p>
-<p><strong>Before moving on:</strong> Remove the temporary <code>root_agent = parallel_content_creation</code> line from <code>agent.py</code>.</p>
+<p>The parallel agents read <code>&#123;&#123;current_content}}</code> from session state — they can&#39;t run standalone. Test them as a three-phase pipeline by temporarily adding to <code>agent.py</code>:</p>
+<pre><code language="language-python" class="language-python">three_phase_pipeline = SequentialAgent(
+    name=&#34;three_phase_pipeline&#34;,
+    sub_agents=[research_and_draft_workflow, quality_improvement_loop, parallel_content_creation],
+)
+root_agent = three_phase_pipeline
+</code></pre>
+<p>Run <code>adk web --port 8080 --reload_agents</code> and enter the prompt:</p>
+<pre><code>Write a blog about sustainable packaging for eco-conscious millennials
+</code></pre>
+<p>All four <code>output_key</code> values — <code>final_blog_post</code>, <code>social_media_posts</code>, <code>email_newsletter</code>, <code>seo_metadata</code> — should appear in the State tab simultaneously after the research → draft → quality loop completes.</p>
+<p><strong>Before moving on:</strong> Remove <code>three_phase_pipeline</code> and revert <code>root_agent</code> back to <code>topic_research_agent</code> in <code>agent.py</code>.</p>
 
 
       </google-codelab-step>
@@ -962,7 +895,7 @@ print([a.name for a in full_content_workflow.sub_agents])
 
 content_analyzer_agent = Agent(
     name=&#34;content_analyzer_agent&#34;,
-    model=Gemini(model=MODEL_NAME, retry_options=RETRY_CONFIG),
+    model=MODEL_NAME,
     instruction=&#34;&#34;&#34;
     You are a content analysis expert. Analyze the provided text.
 
@@ -985,7 +918,7 @@ content_analyzer_agent = Agent(
 
 master_orchestrator_agent = Agent(
     name=&#34;master_orchestrator_agent&#34;,
-    model=Gemini(model=MODEL_NAME, retry_options=RETRY_CONFIG),
+    model=MODEL_NAME,
     instruction=&#34;&#34;&#34;
     You are the Master Content Creation Studio orchestrator. Delegate tasks to specialists.
 
@@ -1108,22 +1041,22 @@ def before_model_callback(
     callback_context: CallbackContext,
     llm_request: LlmRequest
 ) -&gt; Optional[LlmResponse]:
-    if llm_request.contents:
-        last_content = llm_request.contents[-1]
-        if last_content.parts:
-            text = last_content.parts[0].text or &#34;&#34;
-            text_lower = text.lower()
-            for topic in BLOCKED_TOPICS:
-                if topic in text_lower:
-                    print(f&#34;  🛡️ GUARDRAIL: Blocked request containing &#39;{topic}&#39;&#34;)
-                    return LlmResponse(
-                        content=types.Content(
-                            parts=[types.Part.from_text(
-                                text=f&#34;I cannot generate content about &#39;{topic}&#39;. Please provide a different topic.&#34;
-                            )],
-                            role=&#34;model&#34;
+    for content in reversed(llm_request.contents or []):
+        if content.role == &#34;user&#34;:
+            for part in (content.parts or []):
+                text = (part.text or &#34;&#34;).lower()
+                for topic in BLOCKED_TOPICS:
+                    if topic in text:
+                        print(f&#34;  🛡️ GUARDRAIL: Blocked request containing &#39;{topic}&#39;&#34;)
+                        return LlmResponse(
+                            content=types.Content(
+                                parts=[types.Part.from_text(
+                                    text=f&#34;I cannot generate content about &#39;{topic}&#39;. Please provide a different topic.&#34;
+                                )],
+                                role=&#34;model&#34;
+                            )
                         )
-                    )
+            break  # only check the most recent user message
     return None  # Proceed with the model call
 
 
@@ -1187,7 +1120,7 @@ def after_model_callback(
 <li><strong>Persist files across sessions</strong> by prefixing the filename with <code>user:</code> (e.g., <code>user:blog_post.md</code>)</li>
 </ul>
 <h2 is-upgraded>Explore the artifact tools</h2>
-<p>Open <code>content_creation_studio/artifacts.py</code> from the main project. It defines three tools:</p>
+<p>Open <code>content_creation_studio/artifacts.py</code>. It defines three tools:</p>
 <pre><code language="language-python" class="language-python">async def save_content_artifact(tool_context, filename, content) -&gt; dict:
     &#34;&#34;&#34;Saves generated content as a versioned artifact.&#34;&#34;&#34;
     artifact = types.Part.from_text(text=content)
@@ -1406,8 +1339,7 @@ async def serve_frontend():
 </code></pre>
 <h2 is-upgraded>Deploy to Cloud Run</h2>
 <p>The deployment script handles everything — building the image, pushing to Artifact Registry, and deploying:</p>
-<pre><code language="language-bash" class="language-bash">cd /path/to/content_creation_mas
-bash deployment/deploy-combined.sh
+<pre><code language="language-bash" class="language-bash">bash deployment/deploy-combined.sh
 </code></pre>
 <p>The script will:</p>
 <ol type="1">

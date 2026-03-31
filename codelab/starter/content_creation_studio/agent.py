@@ -5,9 +5,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from google.adk.agents import SequentialAgent, LoopAgent, ParallelAgent, Agent
-from google.adk.models.google_llm import Gemini
 from google.adk.tools import preload_memory_tool
-from content_creation_studio.config import MODEL_NAME, RETRY_CONFIG, MAX_IMPROVEMENT_ITERATIONS
+from content_creation_studio.config import MODEL_NAME, MAX_IMPROVEMENT_ITERATIONS
 from content_creation_studio.callbacks import (
     before_agent_callback,
     after_agent_callback,
@@ -59,7 +58,7 @@ full_content_workflow = None  # Replace this line
 # --- Step 13: Root Agent (Master Orchestrator) ---
 # TODO: #REPLACE-master-orchestrator
 # Create an Agent named "master_orchestrator_agent" with:
-#   - model=Gemini(model=MODEL_NAME, retry_options=RETRY_CONFIG)
+#   - model=MODEL_NAME  (plain string — lets ADK pick the right backend at runtime)
 #   - instruction: routes to full_content_workflow for content creation
 #                  OR content_analyzer_agent for text analysis
 #                  (mention that past memory is loaded before each turn)

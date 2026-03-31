@@ -86,18 +86,21 @@ def before_model_callback(
     Returning an LlmResponse skips the actual model call entirely.
     """
     # TODO: #REPLACE-before-model-callback
-    # 1. Check if llm_request.contents is not empty
-    # 2. Get last_content = llm_request.contents[-1]
-    # 3. If last_content.parts exists, get text = last_content.parts[0].text or ""
-    # 4. Convert text to lowercase and check if any word in BLOCKED_TOPICS is in it
-    # 5. If found, print a guardrail message and return:
+    # 1. Iterate backwards through llm_request.contents to find the last user message:
+    #       for content in reversed(llm_request.contents):
+    #           if content.role == "user":
+    #               ...check parts...
+    #               break
+    # 2. For each part in that content's parts, get text = part.text or ""
+    # 3. Convert text to lowercase and check if any word in BLOCKED_TOPICS is in it
+    # 4. If found, print a guardrail message and return:
     #    LlmResponse(content=types.Content(
     #        parts=[types.Part.from_text(
     #            text=f"I cannot generate content about '{topic}'. Please provide a different topic."
     #        )],
     #        role="model"
     #    ))
-    # 6. Return None to proceed with the normal model call
+    # 5. Return None to proceed with the normal model call
     pass
 
 
