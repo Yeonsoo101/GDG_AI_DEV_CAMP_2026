@@ -1,6 +1,9 @@
 # Environment variables
 .env
 
+# Large media files
+codelab/diagrams/full stack app mas demo.mp4
+
 
 # Python
 __pycache__/
