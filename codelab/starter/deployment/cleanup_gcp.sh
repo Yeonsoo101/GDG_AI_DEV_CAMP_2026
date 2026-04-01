@@ -114,25 +114,27 @@ echo ""
 if [ -n "$AGENT_ENGINE_RESOURCE_NAME" ]; then
     echo "🗑️  Deleting Agent Engine: $AGENT_ENGINE_RESOURCE_NAME..."
 
-    # Use the Python cleanup script which is more reliable
-    if [ -f "$SCRIPT_DIR/deploy.py" ]; then
-        python "$SCRIPT_DIR/deploy.py" --action cleanup --resource_name "$AGENT_ENGINE_RESOURCE_NAME" || {
-            echo "⚠️  Python cleanup failed, trying gcloud command..."
-
-            # Extract components from resource name
-            # Format: projects/{project}/locations/{location}/reasoningEngines/{id}
-            ENGINE_ID=$(echo $AGENT_ENGINE_RESOURCE_NAME | awk -F'/' '{print $NF}')
-
-            gcloud beta ai reasoning-engines delete $ENGINE_ID \
-                --region=$REGION \
-                --project=$GOOGLE_CLOUD_PROJECT \
-                --quiet || echo "⚠️  Failed to delete Agent Engine (may already be deleted)"
-        }
-    else
-        echo "⚠️  deploy.py not found, skipping Agent Engine cleanup"
-        echo "   To manually delete, run:"
-        echo "   python deployment/deploy.py --action cleanup --resource_name $AGENT_ENGINE_RESOURCE_NAME"
-    fi
+    # Use inline Python — avoids importing the agent package (which requires full venv)
+    python3 -c "
+import sys
+try:
+    import vertexai
+    from vertexai import agent_engines
+    vertexai.init(project='$GOOGLE_CLOUD_PROJECT', location='$REGION')
+    engine = agent_engines.get('$AGENT_ENGINE_RESOURCE_NAME')
+    engine.delete(force=True)
+    print('Agent Engine deleted successfully')
+except Exception as e:
+    print(f'Error: {e}', file=sys.stderr)
+    sys.exit(1)
+" || {
+        echo "⚠️  Python deletion failed, trying gcloud command..."
+        ENGINE_ID=$(echo "$AGENT_ENGINE_RESOURCE_NAME" | awk -F'/' '{print $NF}')
+        gcloud ai reasoning-engines delete "$ENGINE_ID" \
+            --location="$REGION" \
+            --project="$GOOGLE_CLOUD_PROJECT" \
+            --quiet || echo "⚠️  Failed to delete Agent Engine (may already be deleted)"
+    }
     echo "✅ Agent Engine cleanup attempted"
 else
     echo "ℹ️  AGENT_ENGINE_RESOURCE_NAME not set (skipping Agent Engine cleanup)"
@@ -255,6 +257,32 @@ else
     echo "ℹ️  Storage bucket 'gs://$BUCKET_NAME' not found"
 fi
 
+# Delete Cloud Build Bucket (optional)
+echo ""
+echo "=============================================="
+echo "Step 7: Deleting Cloud Build Bucket (Optional)"
+echo "=============================================="
+echo ""
+
+CLOUDBUILD_BUCKET="${GOOGLE_CLOUD_PROJECT}_cloudbuild"
+
+if gsutil ls -b "gs://$CLOUDBUILD_BUCKET" &>/dev/null; then
+    echo "⚠️  WARNING: This will delete ALL Cloud Build logs and source archives!"
+    read -p "Delete Cloud Build bucket 'gs://$CLOUDBUILD_BUCKET'? (y/n): " -n 1 -r
+    echo ""
+
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        echo "🗑️  Deleting Cloud Build bucket and all contents..."
+        gsutil -m rm -r "gs://$CLOUDBUILD_BUCKET" || true
+        gsutil rb "gs://$CLOUDBUILD_BUCKET" || true
+        echo "✅ Cloud Build bucket deleted"
+    else
+        echo "ℹ️  Keeping Cloud Build bucket"
+    fi
+else
+    echo "ℹ️  Cloud Build bucket 'gs://$CLOUDBUILD_BUCKET' not found"
+fi
+
 # Summary
 echo ""
 echo "=============================================="
@@ -267,10 +295,10 @@ echo "  ✅ Agent Engine cleanup: Done"
 echo "  ✅ Docker images cleanup: Done"
 echo "  ✅ Service account cleanup: Done"
 echo "  ✅ Storage bucket cleanup: Done"
+echo "  ✅ Cloud Build bucket cleanup: Done"
 echo ""
 echo "💡 Note: The following may still exist:"
 echo "  - Enabled APIs (these don't cost money when idle)"
-echo "  - Cloud Build history"
 echo "  - Cloud Logging entries"
 echo ""
 echo "To also disable APIs (optional):"
