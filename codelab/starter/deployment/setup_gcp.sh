@@ -221,8 +221,7 @@ if [ ! -f "$ENV_FILE" ] || ! grep -q "AGENT_ENGINE_RESOURCE_NAME" "$ENV_FILE"; t
 fi
 
 echo "3. Deploy frontend and backend to Cloud Run:"
-echo "   cd deployment"
-echo "   ./deploy-cloudrun.sh"
+echo "   bash deployment/deploy-combined.sh"
 echo ""
 echo "All set! Your GCP environment is ready for the workshop."
 echo ""

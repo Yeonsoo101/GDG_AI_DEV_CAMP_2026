@@ -36,7 +36,7 @@
           <hr style="border:none;border-top:1px solid #dadce0;margin:0 0 20px 0;">
           <div style="display:flex;align-items:center;margin-bottom:16px;color:#5f6368;font-size:14px;">
             <svg style="margin-right:16px;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 24 24" fill="#5f6368"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
-            <span>Last updated Mar 31, 2026</span>
+            <span>Last updated Apr 01, 2026</span>
           </div>
           <div style="display:flex;align-items:center;color:#5f6368;font-size:14px;">
             <div style="margin-right:16px;flex-shrink:0;width:20px;height:20px;border-radius:50%;background:#bdc1c6;display:flex;align-items:center;justify-content:center;overflow:hidden;">
@@ -1337,8 +1337,13 @@ async def serve_frontend():
     if index_file.exists():
         return FileResponse(str(index_file))
 </code></pre>
+<h2 is-upgraded>Set up GCP infrastructure</h2>
+<p>Before deploying, run the setup script once. It creates the Artifact Registry repository, service account, IAM roles, and configures Docker authentication:</p>
+<pre><code language="language-bash" class="language-bash">bash deployment/setup_gcp.sh
+</code></pre>
+<p>This is a one-time setup. It is safe to re-run — it skips resources that already exist.</p>
 <h2 is-upgraded>Deploy to Cloud Run</h2>
-<p>The deployment script handles everything — building the image, pushing to Artifact Registry, and deploying:</p>
+<p>Once setup is complete, the deployment script handles everything — building the image, pushing to Artifact Registry, and deploying:</p>
 <pre><code language="language-bash" class="language-bash">bash deployment/deploy-combined.sh
 </code></pre>
 <p>The script will:</p>

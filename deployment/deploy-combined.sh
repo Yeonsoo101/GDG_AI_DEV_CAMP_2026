@@ -72,29 +72,17 @@ if [[ ! $REPLY =~ ^[Yy]$ ]]; then
 fi
 
 echo ""
-echo "🔐 Step 1/5: Configuring Docker Authentication..."
-echo "------------------------------------------------"
-if [ "$USE_ARTIFACT_REGISTRY" = "true" ]; then
-    echo "Authenticating with Artifact Registry..."
-    gcloud auth configure-docker ${REGION}-docker.pkg.dev --quiet
-else
-    echo "Authenticating with Container Registry (GCR)..."
-    gcloud auth configure-docker gcr.io --quiet
-fi
-echo "✅ Docker authentication configured"
+echo "🔨 Step 1/3: Building and pushing image via Cloud Build..."
+echo "----------------------------------------------------------"
+echo "  (Runs in GCP — no local Docker required)"
+gcloud builds submit \
+    --tag "$IMAGE_NAME" \
+    --project=$GOOGLE_CLOUD_PROJECT \
+    .
+echo "✅ Image built and pushed successfully"
 
 echo ""
-echo "🔨 Step 2/5: Building Docker image..."
-echo "------------------------------------"
-docker build -t "$IMAGE_NAME" -f Dockerfile .
-
-echo ""
-echo "📤 Step 3/5: Pushing image to registry..."
-echo "-----------------------------------------"
-docker push "$IMAGE_NAME"
-
-echo ""
-echo "🚀 Step 4/5: Deploying to Cloud Run..."
+echo "🚀 Step 2/3: Deploying to Cloud Run..."
 echo "--------------------------------------"
 
 SERVICE_ACCOUNT="content-studio-sa@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com"
@@ -139,7 +127,7 @@ fi
 eval $GCLOUD_CMD
 
 echo ""
-echo "✅ Step 5/5: Retrieving service URL..."
+echo "✅ Step 3/3: Retrieving service URL..."
 echo "-------------------------------------"
 SERVICE_URL=$(gcloud run services describe $SERVICE_NAME --region $REGION --format 'value(status.url)')
 
