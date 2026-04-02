@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
   <meta name="theme-color" content="#4F7DC9">
   <meta charset="UTF-8">
-  <title>Multi-Agent Systems with Google ADK &amp; Vertex AI: Design Considerations</title>
+  <title>Build a Full-Stack Multi-Agent App with Google ADK &amp; Vertex AI</title>
   <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Code+Pro:400|Roboto:400,300,400italic,500,700|Roboto+Mono">
   <link rel="stylesheet" href="//fonts.googleapis.com/icon?family=Material+Icons">
   <link rel="stylesheet" href="https://storage.googleapis.com/claat-public/codelab-elements.css">
@@ -24,7 +24,7 @@
   <google-codelab codelab-gaid=""
                   codelab-ga4id=""
                   id="content-creation-studio-adk"
-                  title="Multi-Agent Systems with Google ADK &amp; Vertex AI: Design Considerations"
+                  title="Build a Full-Stack Multi-Agent App with Google ADK &amp; Vertex AI"
                   environment="web"
                   feedback-link="https://github.com/Saoussen-CH/google-adk-multi-agent-design-consideration-workshop/issues">
     
@@ -36,7 +36,7 @@
           <hr style="border:none;border-top:1px solid #dadce0;margin:0 0 20px 0;">
           <div style="display:flex;align-items:center;margin-bottom:16px;color:#5f6368;font-size:14px;">
             <svg style="margin-right:16px;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 24 24" fill="#5f6368"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
-            <span>Last updated Apr 01, 2026</span>
+            <span>Last updated Apr 02, 2026</span>
           </div>
           <div style="display:flex;align-items:center;color:#5f6368;font-size:14px;">
             <div style="margin-right:16px;flex-shrink:0;width:20px;height:20px;border-radius:50%;background:#bdc1c6;display:flex;align-items:center;justify-content:center;overflow:hidden;">
@@ -48,83 +48,76 @@
       </div>
     </div>
 
-        <h2 is-upgraded>Beyond Chatbots</h2>
-<p>Remember the first time you used a generative AI chatbot? The excitement of having a conversation with AI was incredible. But chatbots are just the beginning.</p>
+        <h2 is-upgraded>About this codelab</h2>
+<p>In this codelab, you will build a <strong>Content Creation Studio</strong> — a full-stack AI application powered by:</p>
+<ul>
+<li><strong>Google ADK</strong> (Agent Development Kit) for orchestrating a multi-agent pipeline</li>
+<li><strong>Gemini 2.5 Flash</strong> as the foundation model across all agents</li>
+<li><strong>Vertex AI Agent Engine</strong> for managed agent deployment</li>
+<li><strong>FastAPI + React</strong> served from a single <strong>Cloud Run</strong> container</li>
+</ul>
+<p>This is not a chatbot demo. You will build, deploy, and access a real web application backed by a team of collaborating AI agents.</p>
+<h2 is-upgraded>The problem agents solve</h2>
 <table>
-<tr><td colspan="1" rowspan="1"></td><td colspan="1" rowspan="1"><p>Chatbot</p>
-</td><td colspan="1" rowspan="1"><p>AI Agent</p>
+<tr><td colspan="1" rowspan="1"></td><td colspan="1" rowspan="1"><p>Single LLM call</p>
+</td><td colspan="1" rowspan="1"><p>Multi-Agent System</p>
 </td></tr>
-<tr><td colspan="1" rowspan="1"><p>What it does</p>
-</td><td colspan="1" rowspan="1"><p>Answers questions</p>
-</td><td colspan="1" rowspan="1"><p>Takes actions</p>
+<tr><td colspan="1" rowspan="1"><p><strong>Capability</strong></p>
+</td><td colspan="1" rowspan="1"><p>One task at a time</p>
+</td><td colspan="1" rowspan="1"><p>Parallel, sequential, and looping tasks</p>
 </td></tr>
-<tr><td colspan="1" rowspan="1"><p>How it works</p>
-</td><td colspan="1" rowspan="1"><p>One LLM call per turn</p>
-</td><td colspan="1" rowspan="1"><p>Reasons, uses tools, makes decisions</p>
+<tr><td colspan="1" rowspan="1"><p><strong>Quality control</strong></p>
+</td><td colspan="1" rowspan="1"><p>No feedback loop</p>
+</td><td colspan="1" rowspan="1"><p>Iterative improvement with quality gates</p>
 </td></tr>
-<tr><td colspan="1" rowspan="1"><p>Example</p>
-</td><td colspan="1" rowspan="1"><p>&#34;What is sustainable packaging?&#34;</p>
-</td><td colspan="1" rowspan="1"><p>Searches Google, drafts a blog, improves it, publishes 4 formats — all from one request</p>
+<tr><td colspan="1" rowspan="1"><p><strong>Scalability</strong></p>
+</td><td colspan="1" rowspan="1"><p>Limited by context window</p>
+</td><td colspan="1" rowspan="1"><p>Each agent owns a focused responsibility</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><strong>Example</strong></p>
+</td><td colspan="1" rowspan="1"><p>&#34;Write a blog post&#34;</p>
+</td><td colspan="1" rowspan="1"><p>Research → Draft → Improve → Generate blog + social + email + SEO — all from one request</p>
 </td></tr>
 </table>
-<p>That&#39;s what you&#39;ll build today.</p>
-<h2 is-upgraded>What is Google ADK?</h2>
-<p>The <strong>Agent Development Kit (ADK)</strong> is Google&#39;s open-source framework for building AI agents. It handles the hard parts — session state, tool calling, multi-agent coordination, streaming, and deployment — so you focus on the agent logic itself, not the infrastructure.</p>
-<h2 is-upgraded>What is this codelab?</h2>
-<p>In this codelab, you will build a <strong>Content Creation Studio</strong> — a multi-agent system powered by Google&#39;s Agent Development Kit (ADK) and Gemini models.</p>
-<p>Given a single request (topic, target audience, tone, and keywords), your system will automatically:</p>
-<ul>
-<li>Research trending angles using Google Search</li>
-<li>Draft and iteratively improve content until it meets a quality threshold</li>
-<li>Generate a <strong>blog post</strong>, <strong>social media posts</strong>, <strong>email newsletter</strong>, and <strong>SEO metadata</strong> — all in parallel</li>
-</ul>
-<p>You&#39;ll also build a second mode: a <strong>text analyzer</strong> that measures readability, word count, and suggests hashtags.</p>
 <h2 is-upgraded>What you&#39;ll build</h2>
-<pre><code language="language-text" class="language-text">User Request
-    ↓
-master_orchestrator_agent  ──────────────────────────┐
-(LLM Agent - routes requests)                        │
-    │                                                 ▼
-    ▼                                    content_analyzer_agent
-full_content_workflow                    (word count, readability,
-(SequentialAgent - 3 phases)              hashtags)
-    │
-    ├── Phase 1: research_and_draft_workflow (SequentialAgent)
-    │       ├── topic_research_agent  → session state: blog_topic
-    │       └── content_drafter_agent → session state: current_content
-    │
-    ├── Phase 2: quality_improvement_loop (LoopAgent, max 2 iterations)
-    │       ├── quality_checker_agent  → session state: quality_feedback
-    │       └── content_improver_agent → improves or calls exit_loop
-    │
-    └── Phase 3: parallel_content_creation (ParallelAgent)
-            ├── blog_post_writer_agent      → session state: final_blog_post
-            ├── social_media_creator_agent  → session state: social_media_posts
-            ├── email_newsletter_writer_agent → session state: email_newsletter
-            └── seo_metadata_agent          → session state: seo_metadata
-</code></pre>
+<p>You will build <strong>two layers</strong> of the same application:</p>
+<p><strong>Layer 1 — The Agent Pipeline</strong></p>
+<p>A team of specialized agents that collaborate to produce a complete content package from a single topic request.</p>
+<p class="image-container"><img alt="Multi-Agent System — Sequential, Loop, and Parallel agent pipeline" src="img/9ad048e29ea815b0.png"></p>
+<p><strong>Layer 2 — The Full-Stack App</strong></p>
+<p>A React frontend and FastAPI backend deployed as a single Cloud Run service, wired to your agents running on Vertex AI Agent Engine, with real-time streaming via Server-Sent Events.</p>
+<p class="image-container"><img alt="Full-Stack Architecture — React + FastAPI on Cloud Run, ADK agents on Vertex AI Agent Engine" src="img/7db52a9ffe2ab631.png"></p>
 <h2 class="checklist" is-upgraded>What you&#39;ll learn</h2>
-<ul class="checklist">
-<li>The ADK runtime: <strong>Runner</strong>, <strong>Session</strong>, <strong>SessionService</strong>, and the event-driven execution model</li>
-<li>How to build <strong>LLM Agents</strong> with custom instructions, tools, and <code>output_key</code></li>
-<li>How <strong>session state</strong> works and how agents share data via <code>&#123;&#123;key}}</code> templating</li>
-<li>The two agent coordination patterns: <strong>AgentTool</strong> vs <strong>sub_agents</strong> — and when to choose each</li>
-<li>How to choose between <strong>LLM-Driven</strong> and <strong>Workflow-Driven</strong> architectures</li>
+<p><strong>ADK core concepts</strong></p>
+<ul>
+<li>The ADK runtime: <strong>Runner</strong>, <strong>Session</strong>, <strong>SessionService</strong>, and the event model</li>
+<li>How <strong>session state</strong> flows between agents via <code>output_key</code> and <code>&#123;&#123;key}}</code> templating</li>
+<li>How to add <strong>callbacks</strong> for observability and content safety guardrails</li>
+<li>How <strong>artifacts</strong> provide persistent file storage across sessions</li>
+<li>How to add <strong>long-term memory</strong> that survives session boundaries</li>
+</ul>
+<p><strong>Multi-agent design with ADK</strong></p>
+<ul>
+<li>When to use <strong>LLM-Driven</strong> vs <strong>Workflow-Driven</strong> architectures</li>
 <li>How to chain agents with <strong>SequentialAgent</strong></li>
-<li>How to build quality improvement loops with <strong>LoopAgent</strong> and <code>exit_loop</code></li>
-<li>How to run independent tasks concurrently with <strong>ParallelAgent</strong></li>
-<li>How to implement <strong>callbacks</strong> for observability and content safety guardrails</li>
-<li>How <strong>artifacts</strong> provide persistent file storage alongside sessions</li>
-<li>How to add <strong>long-term memory</strong> that persists across sessions</li>
-<li>How to deploy to <strong>Vertex AI Agent Engine</strong></li>
-<li>How to deploy a <strong>full-stack app</strong> (React + FastAPI) to Cloud Run</li>
+<li>How to build iterative quality loops with <strong>LoopAgent</strong> and <code>exit_loop</code></li>
+<li>How to run tasks concurrently with <strong>ParallelAgent</strong></li>
+<li>The two coordination patterns: <strong>AgentTool</strong> vs <strong>sub_agents</strong></li>
+</ul>
+<p><strong>Deployment</strong></p>
+<ul>
+<li>Deploy agents to <strong>Vertex AI Agent Engine</strong> (managed, scalable)</li>
+<li>Package a React + FastAPI app into a single Docker container</li>
+<li>Deploy to <strong>Cloud Run</strong> with real-time <strong>SSE streaming</strong> to the browser</li>
+<li>Integrate the frontend with Agent Engine via the ADK <code>RemoteRunner</code></li>
 </ul>
 <h2 is-upgraded>Prerequisites</h2>
 <ul>
 <li>A Google Cloud project with billing enabled</li>
-<li>Basic familiarity with Python</li>
+<li>Basic Python familiarity (functions, classes, async/await)</li>
+<li>No frontend experience required — the React app is provided</li>
 </ul>
-<p><strong>Note:</strong> This codelab runs entirely in <strong>Google Cloud Shell</strong>. Authentication is handled automatically via your GCP credentials — no API key required.</p>
+<p><strong>Note:</strong> This codelab runs entirely in <strong>Google Cloud Shell</strong>. No local install needed. Authentication is handled automatically via your GCP credentials — no API key required.</p>
 <p><a href="https://ssh.cloud.google.com/cloudshell/open?cloudshell_git_repo=https://github.com/Saoussen-CH/google-adk-multi-agent-design-consideration-workshop&cloudshell_git_branch=codelab&cloudshell_tutorial=codelab/codelab.md&cloudshell_workspace=codelab/starter" target="_blank">Open in Cloud Shell</a></p>
 
 
@@ -136,7 +129,7 @@ full_content_workflow                    (word count, readability,
 <li><strong>If you are attending an instructor-led workshop</strong>: Your instructor will provide you with a credit code. Please use the one they provide.</li>
 <li><strong>If you are working through this Codelab on your own</strong>: <strong>Use a Personal Gmail:</strong> You must use a personal account (e.g., <code>name@gmail.com</code>). Corporate or school-managed accounts will <strong>not</strong> work.</li>
 </ul>
-<p>👉 Steps:</p>
+<p>Steps:</p>
 <ol type="1">
 <li><strong>Go to the credit claim site:</strong> Your instructor will provide the link at the start of the session</li>
 <li><strong>Sign In:</strong> Paste the link into the address bar and sign in with your personal Gmail.</li>
@@ -170,7 +163,7 @@ full_content_workflow                    (word count, readability,
 └──────────────────────────────────────────────────────┘
 </code></pre>
 <p><strong>Tip:</strong> If Cloud Shell goes idle for 20 minutes it will disconnect. If this happens, reconnect and <code>cd ~/google-adk-multi-agent-design-consideration-workshop/codelab/starter</code> to return to the working directory.</p>
-<p>👉 💻 In the terminal, navigate to the starter directory:</p>
+<p>In the terminal, navigate to the starter directory:</p>
 <pre><code language="language-bash" class="language-bash">cd google-adk-multi-agent-design-consideration-workshop/codelab/starter
 </code></pre>
 <p>This is the <strong><code>codelab</code></strong></p>
@@ -180,7 +173,7 @@ full_content_workflow                    (word count, readability,
 </code></pre>
 <p>✅ You&#39;re in the right folder.</p>
 <h2 is-upgraded>Create and activate a virtual environment</h2>
-<p>👉 💻 Run:</p>
+<p>Run:</p>
 <pre><code language="language-bash" class="language-bash">python -m venv .venv
 source .venv/bin/activate
 </code></pre>
@@ -189,7 +182,7 @@ source .venv/bin/activate
 </code></pre>
 <p>✅ Virtual environment is active.</p>
 <h2 is-upgraded>Install dependencies</h2>
-<p>👉 💻 Run:</p>
+<p>Run:</p>
 <pre><code language="language-bash" class="language-bash">pip install -r requirements.txt
 </code></pre>
 <p>This installs <code>google-adk</code>, <code>google-cloud-aiplatform</code>, <code>fastapi</code>, <code>uvicorn</code>, and supporting libraries. It may take a minute.</p>
@@ -198,7 +191,7 @@ source .venv/bin/activate
 </code></pre>
 <p>✅ Dependencies installed.</p>
 <h2 is-upgraded>Configure your environment</h2>
-<p>👉 💻 First, confirm your active GCP project and set your Project ID:</p>
+<p>First, confirm your active GCP project and set your Project ID:</p>
 <p>You can see your <strong>Project ID</strong> in the GCP Console dashboard. Copy it — you&#39;ll need it in the next command:</p>
 <p class="image-container"><img alt="Find your Project ID in the GCP Console and set it in Cloud Shell" src="img/1da5e7c9bc304a1d.jpg"></p>
 <pre><code language="language-bash" class="language-bash">gcloud config get-value project
@@ -207,11 +200,11 @@ source .venv/bin/activate
 <pre><code language="language-text" class="language-text">your-project-id
 </code></pre>
 <p>If this is empty, set it with: <code>gcloud config set project YOUR_PROJECT_ID</code></p>
-<p>👉 💻 Set up Application Default Credentials so the Vertex AI SDK can authenticate:</p>
+<p>Set up Application Default Credentials so the Vertex AI SDK can authenticate:</p>
 <pre><code language="language-bash" class="language-bash">gcloud auth application-default login
 </code></pre>
 <p>Follow the browser prompt to log in with your Google account. This writes credentials to <code>~/.config/gcloud/application_default_credentials.json</code>, which the ADK uses automatically when <code>GOOGLE_GENAI_USE_VERTEXAI=1</code>.</p>
-<p>👉 💻 Enable the required GCP APIs:</p>
+<p>Enable the required GCP APIs:</p>
 <pre><code language="language-bash" class="language-bash">gcloud services enable \
     aiplatform.googleapis.com \
     run.googleapis.com \
@@ -222,20 +215,20 @@ source .venv/bin/activate
     cloudresourcemanager.googleapis.com
 </code></pre>
 <p>This takes about 2 minutes. You&#39;ll see <code>Operation finished successfully</code> when done.</p>
-<p>👉 💻 Copy the example <code>.env</code> file and open it in the Cloud Shell editor:</p>
+<p>Copy the example <code>.env</code> file and open it in the Cloud Shell editor:</p>
 <pre><code language="language-bash" class="language-bash">cp .env.example .env
 cloudshell edit .env
 </code></pre>
 <p>This opens the <code>.env</code> file in the Cloud Shell code editor panel.</p>
-<p>👉 Fill in your project details — replace <code>your-project-id</code> with the value from the previous step:</p>
+<p>Fill in your project details — replace <code>your-project-id</code> with the value from the previous step:</p>
 <pre><code language="language-text" class="language-text">GOOGLE_CLOUD_PROJECT=your-project-id
 GOOGLE_CLOUD_LOCATION=us-central1
 GOOGLE_GENAI_USE_VERTEXAI=1
 </code></pre>
 <p>💡 <strong>Why no API key?</strong> The <code>gcloud auth application-default login</code> command you ran sets up <strong>Application Default Credentials</strong>. Setting <code>GOOGLE_GENAI_USE_VERTEXAI=1</code> tells ADK to use those credentials with Vertex AI — no separate API key needed. This applies throughout the entire codelab.</p>
-<p>👉 Save the file (<code>Ctrl+S</code> in the editor), then return to the terminal.</p>
+<p>Save the file (<code>Ctrl+S</code> in the editor), then return to the terminal.</p>
 <h2 is-upgraded>Verify your setup</h2>
-<p>👉 💻 Run:</p>
+<p>Run:</p>
 <pre><code language="language-bash" class="language-bash">python -c &#34;from google.adk.agents import Agent; print(&#39;ADK ready ✓&#39;)&#34;
 </code></pre>
 <p>👀 <strong>Verify</strong> — you should see:</p>
@@ -248,23 +241,34 @@ GOOGLE_GENAI_USE_VERTEXAI=1
 <p><strong>Each time you run </strong></p>
 <p><strong><code>adk web</code></strong></p>
 <p><strong>:</strong></p>
-<p>👉 💻 Start the dev server from your project root (the <code>starter/</code> directory):</p>
+<p>Start the dev server from your project root (the <code>starter/</code> directory):</p>
 <pre><code language="language-bash" class="language-bash">adk web --port 8080 --reload_agents
 </code></pre>
-<p>👉 👀 Open the Web Preview:</p>
+<p>Open the Web Preview:</p>
 <ol type="1">
 <li>Click the <strong>Web Preview</strong> button (the eye icon <code>👁</code>) in the Cloud Shell toolbar</li>
 <li>Select <strong>&#34;Preview on port 8080&#34;</strong></li>
 </ol>
 <p>This opens the ADK Dev UI in a new browser tab.</p>
 <p>All <code>http://localhost:8080</code> references in this codelab map to this Web Preview URL.</p>
-<p>👉 To stop the server, press <code>Ctrl+C</code> in the terminal before moving to the next step.</p>
+<p>To stop the server, press <code>Ctrl+C</code> in the terminal before moving to the next step.</p>
 
 
       </google-codelab-step>
     
       <google-codelab-step label="ADK Core Concepts" duration="0">
-        <p>Before writing any code, understand the four core objects ADK uses to run every agent. You&#39;ll see these throughout the codelab.</p>
+        <h2 is-upgraded>What is an Agent?</h2>
+<p>An <strong>AI agent</strong> is a program that uses a large language model to decide what to do — not just what to say. Unlike a chatbot that answers one question at a time, an agent can:</p>
+<ul>
+<li>Use <strong>tools</strong> (search the web, call APIs, run code)</li>
+<li>Make <strong>decisions</strong> about which tool to use and in what order</li>
+<li><strong>Delegate</strong> subtasks to other specialized agents</li>
+<li>Maintain <strong>state</strong> across multiple steps to complete a long-horizon task</li>
+</ul>
+<p>The key shift: a chatbot <em>responds</em>. An agent <em>acts</em>.</p>
+<h2 is-upgraded>What is Google ADK?</h2>
+<p>The <strong>Agent Development Kit (ADK)</strong> is Google&#39;s open-source framework for building, evaluating, and deploying AI agents. It handles session state, tool calling, multi-agent coordination, streaming, and deployment — so you focus on the agent logic itself, not the infrastructure.</p>
+<p>ADK is model-agnostic but optimized for Gemini, and it runs the same way whether you&#39;re developing locally with <code>adk web</code> or scaling on Vertex AI Agent Engine.</p>
 <h2 is-upgraded>The four building blocks</h2>
 <p><strong>Agent</strong> — a blueprint. Defines the instructions, model, and tools. It does not run itself.</p>
 <pre><code language="language-python" class="language-python">from google.adk.agents import Agent
@@ -291,7 +295,7 @@ async for event in runner.run_async(
 </code></pre>
 <h2 is-upgraded>The event-driven execution model</h2>
 <p>When you call <code>runner.run_async()</code>, ADK yields a stream of <strong>events</strong>. Each event represents something that happened: a model call, a tool invocation, an agent transfer, or a final response. The last event with <code>is_final_response() == True</code> carries the agent&#39;s answer.</p>
-<p>This event stream is what the ADK Dev UI (<code>adk web</code>) displays in its Events panel — and what the FastAPI backend in Part 18 consumes to stream results to the React frontend.</p>
+<p>This event stream is what the ADK Dev UI (<code>adk web</code>) displays in its Events panel — and what the FastAPI backend in the <strong>Full-Stack Cloud Run Deployment</strong> section consumes to stream results to the React frontend.</p>
 <h2 is-upgraded>How <code>adk web</code> fits in</h2>
 <p><code>adk web</code> discovers your <code>root_agent</code> variable (in <code>content_creation_studio/agent.py</code>), wraps it in a <code>Runner</code> with an <code>InMemorySessionService</code>, and serves a web UI. It&#39;s the fastest way to test agents during development.</p>
 <p>You don&#39;t need to write <code>Runner</code> code yourself in this codelab — <code>adk web</code> handles it. But understanding what happens under the hood will help you interpret the Events panel and debug issues.</p>
@@ -393,8 +397,8 @@ topic_research_agent = Agent(
 <p><strong>Why </strong></p>
 <p><strong><code>output_key="blog_topic"</code></strong></p>
 <p><strong>?</strong> Without it, the agent&#39;s response exists only as a conversation message. With <code>output_key</code>, ADK automatically writes the response text to <code>session.state["blog_topic"]</code> — making it available to every other agent in the pipeline via <code>&#123;&#123;blog_topic}}</code> templating.</p>
-<p><strong>Why use the model name string?</strong> Passing <code>model=MODEL_NAME</code> (a plain string) instead of <code>Gemini(model=MODEL_NAME)</code> ensures the model is constructed fresh at runtime on Agent Engine using Vertex AI credentials. Wrapping in <code>Gemini(...)</code> at definition time pickles the object with local API config, which breaks on Agent Engine.</p>
 <h2 is-upgraded>Test the agent</h2>
+<p><strong>How testing works throughout this codelab: </strong><code>adk web</code> loads whichever agent is assigned to <code>root_agent</code> in <code>agent.py</code>. Each step asks you to temporarily point <code>root_agent</code> at the agent you&#39;re building so you can test it in isolation, then revert before the next step. This keeps each test focused without requiring separate files.</p>
 <p>In <code>content_creation_studio/agent.py</code>, find the last line and temporarily change it:</p>
 <pre><code language="language-python" class="language-python"># Change this:
 root_agent = master_orchestrator_agent
@@ -405,7 +409,7 @@ root_agent = topic_research_agent
 <p>Then start the dev server:</p>
 <pre><code language="language-bash" class="language-bash">adk web --port 8080 --reload_agents
 </code></pre>
-<p>Use the Cloud Shell Web Preview on port 8080 to open the ADK Dev UI (see Step 2 for how). Select <code>content_creation_studio</code> from the dropdown, then type:</p>
+<p>Use the Cloud Shell Web Preview on port 8080 to open the ADK Dev UI (see <strong>Using the ADK Dev UI in Cloud Shell</strong> for how). Select <code>content_creation_studio</code> from the dropdown, then type:</p>
 <pre><code language="language-text" class="language-text">Find the best blog topic about sustainable packaging for eco-conscious millennials
 </code></pre>
 <p><strong>What to expect:</strong> This agent only researches and outputs a <strong>single blog title</strong> — it does not write the full blog. The full pipeline (draft → quality loop → publish-ready post) is assembled in later steps. You are just testing one piece of it here.</p>
@@ -445,9 +449,9 @@ agent = Agent(
     # tools=[google_search],         # built-in tool → passed directly
 )
 </code></pre>
-<p>You&#39;ll see <code>FunctionTool</code> used in the agent files starting from Step 10.</p>
+<p>You&#39;ll see <code>FunctionTool</code> used in the agent files starting from the <strong>Quality Loop</strong> section.</p>
 <h2 is-upgraded>Walk through the tools in <code>tools.py</code></h2>
-<p>👉 Open <code>content_creation_studio/tools.py</code> and read through each function. Here is what each tool does and why it exists:</p>
+<p>Open <code>content_creation_studio/tools.py</code> and read through each function. Here is what each tool does and why it exists:</p>
 <table>
 <tr><td colspan="1" rowspan="1"><p>Tool</p>
 </td><td colspan="1" rowspan="1"><p>Returns</p>
@@ -476,7 +480,7 @@ agent = Agent(
 </table>
 <p><strong>Key concept — </strong></p>
 <p><strong><code>exit_loop</code></strong></p>
-<p><strong>:</strong> Setting <code>tool_context.actions.escalate = True</code> is the ADK signal to stop a <code>LoopAgent</code> early. You&#39;ll see exactly how this is used in Step 10.</p>
+<p><strong>:</strong> Setting <code>tool_context.actions.escalate = True</code> is the ADK signal to stop a <code>LoopAgent</code> early. You&#39;ll see exactly how this is used in the <strong>Quality Loop</strong> section.</p>
 <h2 is-upgraded>Your turn: implement <code>count_words</code></h2>
 <p>One tool is left for you to implement so you experience writing an ADK tool yourself. Open <code>tools.py</code> and find <code>count_words</code> — it has a <code># TODO</code> comment. Replace the <code>pass</code> with:</p>
 <pre><code language="language-python" class="language-python">    count = len(text.split())
@@ -531,19 +535,27 @@ coordinator = Agent(
 <tr><td colspan="1" rowspan="1"></td><td colspan="1" rowspan="1"><p>AgentTool</p>
 </td><td colspan="1" rowspan="1"><p>sub_agents</p>
 </td></tr>
-<tr><td colspan="1" rowspan="1"><p>Inner events visible externally?</p>
-</td><td colspan="1" rowspan="1"><p>No — hidden</p>
-</td><td colspan="1" rowspan="1"><p>Yes — propagate</p>
+<tr><td colspan="1" rowspan="1"><p><strong>Nature</strong></p>
+</td><td colspan="1" rowspan="1"><p>Discrete, stateless — like a function call</p>
+</td><td colspan="1" rowspan="1"><p>Stateful, context-dependent — full control transfer</p>
 </td></tr>
-<tr><td colspan="1" rowspan="1"><p>Session state shared?</p>
-</td><td colspan="1" rowspan="1"><p>No — each call gets its own context</p>
-</td><td colspan="1" rowspan="1"><p>Yes — same session state</p>
+<tr><td colspan="1" rowspan="1"><p><strong>Execution context</strong></p>
+</td><td colspan="1" rowspan="1"><p>Runs in an isolated Runner with its own session</p>
+</td><td colspan="1" rowspan="1"><p>Runs in the same invocation context as the parent</p>
 </td></tr>
-<tr><td colspan="1" rowspan="1"><p>Parent decides when to call?</p>
-</td><td colspan="1" rowspan="1"><p>Yes — LLM decides per turn</p>
-</td><td colspan="1" rowspan="1"><p>Yes — LLM transfers control</p>
+<tr><td colspan="1" rowspan="1"><p><strong>Inner events visible externally?</strong></p>
+</td><td colspan="1" rowspan="1"><p>No — black box, caller only sees final text</p>
+</td><td colspan="1" rowspan="1"><p>Yes — all inner events propagate to the outer runner</p>
 </td></tr>
-<tr><td colspan="1" rowspan="1"><p>Best for</p>
+<tr><td colspan="1" rowspan="1"><p><strong>Session state shared?</strong></p>
+</td><td colspan="1" rowspan="1"><p>No — only <code>state_delta</code> forwarded back to parent</p>
+</td><td colspan="1" rowspan="1"><p>Yes — full shared state through invocation context</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><strong>Control flow</strong></p>
+</td><td colspan="1" rowspan="1"><p>LLM decides per turn (function-call style)</p>
+</td><td colspan="1" rowspan="1"><p>LLM transfers control; workflow agents use deterministic order</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><strong>Best for</strong></p>
 </td><td colspan="1" rowspan="1"><p>Discrete, stateless subtasks</p>
 </td><td colspan="1" rowspan="1"><p>Stateful pipelines, streaming, SSE backends</p>
 </td></tr>
@@ -646,6 +658,36 @@ coordinator/orchestrator
 </td></tr>
 </table>
 <p>Keep this table in mind as you build each piece in the following steps.</p>
+<h2 is-upgraded>LLM-Driven vs Workflow-Driven agents</h2>
+<p>ADK has two fundamentally different agent types, and mixing them up is one of the most common architectural mistakes.</p>
+<table>
+<tr><td colspan="1" rowspan="1"><p>Dimension</p>
+</td><td colspan="1" rowspan="1"><p>LLM-Driven (Agent)</p>
+</td><td colspan="1" rowspan="1"><p>Workflow-Driven (Sequential/Parallel/Loop)</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><strong>Routing</strong></p>
+</td><td colspan="1" rowspan="1"><p>LLM decides what to call next</p>
+</td><td colspan="1" rowspan="1"><p>Code defines the execution graph</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><strong>Flexibility</strong></p>
+</td><td colspan="1" rowspan="1"><p>Handles ambiguous, open-ended requests</p>
+</td><td colspan="1" rowspan="1"><p>Fixed structure, predictable output</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><strong>Cost</strong></p>
+</td><td colspan="1" rowspan="1"><p>Higher (extra LLM call to route)</p>
+</td><td colspan="1" rowspan="1"><p>Lower (no routing LLM call)</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><strong>Debuggability</strong></p>
+</td><td colspan="1" rowspan="1"><p>Harder — model behavior varies</p>
+</td><td colspan="1" rowspan="1"><p>Easier — same steps every time</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><strong>Best for</strong></p>
+</td><td colspan="1" rowspan="1"><p>User-facing intent parsing, open routing</p>
+</td><td colspan="1" rowspan="1"><p>Well-defined pipelines with known steps</p>
+</td></tr>
+</table>
+<p><strong>The key insight:</strong> Use LLM-Driven agents at the <strong>boundaries</strong> where human intent is ambiguous. Use Workflow-Driven agents <strong>inside</strong> those boundaries where the steps are well-defined.</p>
+<p>In the Content Creation Studio, <code>master_orchestrator_agent</code> is LLM-Driven (it decides whether to create content or analyze it). Once it routes to <code>full_content_workflow</code>, that workflow is entirely Workflow-Driven — Sequential → Loop → Parallel — because the steps are always the same.</p>
 
 
       </google-codelab-step>
@@ -668,7 +710,7 @@ coordinator/orchestrator
 
     Output only the blog post in markdown format.
 </code></pre>
-<p><strong><code>&#123;&#123;blog_topic}}</code></strong> is ADK&#39;s key templating syntax — before calling the model, ADK substitutes it with the value of <code>session.state["blog_topic"]</code> written by <code>topic_research_agent</code>. You&#39;ll learn more about this in Step 10.</p>
+<p><strong><code>&#123;&#123;blog_topic}}</code></strong> is ADK&#39;s key templating syntax — before calling the model, ADK substitutes it with the value of <code>session.state["blog_topic"]</code> written by <code>topic_research_agent</code>. You&#39;ll learn more about this in the <strong>Session State</strong> section.</p>
 <h2 is-upgraded>Fill in the first workflow</h2>
 <p>Find the <code># TODO: #REPLACE-research-and-draft-workflow</code> comment in <code>content_creation_studio/agent.py</code> and replace:</p>
 <pre><code language="language-python" class="language-python">research_and_draft_workflow = SequentialAgent(
@@ -693,19 +735,12 @@ root_agent = research_and_draft_workflow
 <p><strong>Tip:</strong> Click on any event in the Events panel to inspect the exact request and response sent to the model at that step.</p>
 <p><strong>Before moving on:</strong> Revert <code>root_agent</code> back to <code>topic_research_agent</code> in <code>agent.py</code>.</p>
 <p><strong>Pattern in practice: </strong><code>research_and_draft_workflow</code> is a classic <strong>workflow-driven</strong> pipeline — topic research <em>always</em> runs before drafting, with no LLM making that routing decision. This is exactly the &#34;deterministic steps → Sequential&#34; case from the architecture decision framework you reviewed earlier.</p>
-<p><strong>The key insight:</strong> Use LLM-Driven agents at the <em>boundaries</em> where human intent is ambiguous (the orchestrator that routes between content creation and analysis). Use Workflow-Driven agents <em>inside</em> those boundaries where the steps are well-defined (the pipeline that runs research → draft → quality → publish).</p>
-<p>In your Content Creation Studio:</p>
-<ul>
-<li><code>master_orchestrator_agent</code> → LLM-Driven (routes based on user intent)</li>
-<li><code>full_content_workflow</code> → Workflow-Driven (always: research → quality loop → parallel output)</li>
-<li><code>quality_improvement_loop</code> → Workflow-Driven (always: check → improve, repeat)</li>
-</ul>
 
 
       </google-codelab-step>
     
       <google-codelab-step label="Session State — The Content Drafter" duration="0">
-        <p>Open <code>content_creation_studio/sub_agents/content_drafter_agent/agent.py</code>.</p>
+        <p>You&#39;ve just run the sequential workflow and seen two keys appear in the <strong>State</strong> tab: <code>blog_topic</code> and <code>current_content</code>. This step explains the mechanism behind that.</p>
 <h2 is-upgraded>How session state works</h2>
 <p>Every ADK conversation has a <code>Session</code> object with a <code>state</code> dictionary. All agents in the same session share this dictionary — it&#39;s how they pass data to each other.</p>
 <pre><code language="language-text" class="language-text">topic_research_agent
@@ -717,12 +752,14 @@ content_drafter_agent
 </code></pre>
 <p>The <code>&#123;&#123;key}}</code> syntax in an instruction is ADK&#39;s <strong>key templating</strong> feature. Before calling the model, ADK substitutes <code>&#123;&#123;blog_topic}}</code> with the current value of <code>session.state["blog_topic"]</code>.</p>
 <p>Use <code>&#123;&#123;key?}}</code> (with a <code>?</code>) for optional keys — this prevents errors if the key doesn&#39;t exist yet.</p>
-<h2 is-upgraded>What you&#39;ve learned so far</h2>
+<h2 is-upgraded>Verify in the State tab</h2>
+<p>Open <code>content_creation_studio/sub_agents/content_drafter_agent/agent.py</code> and confirm:</p>
 <ul>
-<li><code>output_key</code> writes an agent&#39;s response to session state</li>
-<li><code>&#123;&#123;key}}</code> in an instruction reads from session state</li>
-<li>This is the mechanism agents use to pass data to each other</li>
+<li><code>output_key="blog_topic"</code> on <code>topic_research_agent</code> is what wrote the first key</li>
+<li><code>output_key="current_content"</code> on <code>content_drafter_agent</code> is what wrote the second key</li>
+<li>The instruction uses <code>&#123;&#123;blog_topic}}</code> to read the first agent&#39;s output</li>
 </ul>
+<p>Every subsequent agent in the pipeline uses this same pattern — <code>output_key</code> to write, <code>&#123;&#123;key}}</code> to read.</p>
 
 
       </google-codelab-step>
@@ -808,11 +845,27 @@ root_agent = two_phase_pipeline
 <h2 is-upgraded>ParallelAgent</h2>
 <p>A <code>ParallelAgent</code> runs all its <code>sub_agents</code> at the same time. Each agent independently reads the same session state snapshot. This is the &#34;fan-out&#34; pattern: one input, multiple concurrent outputs.</p>
 <pre><code language="language-text" class="language-text">ParallelAgent
-    ├── blog_post_writer_agent      (reads current_content → writes final_blog_post)
-    ├── social_media_creator_agent  (reads current_content → writes social_media_posts)
+    ├── blog_post_writer_agent        (reads current_content → writes final_blog_post)
+    ├── social_media_creator_agent    (reads current_content → writes social_media_posts)
     ├── email_newsletter_writer_agent (reads current_content → writes email_newsletter)
-    └── seo_metadata_agent          (reads current_content → writes seo_metadata)
+    └── seo_metadata_agent            (reads current_content → writes seo_metadata)
 </code></pre>
+<p><strong>Why it matters — the latency difference:</strong></p>
+<table>
+<tr><td colspan="1" rowspan="1"><p>Approach</p>
+</td><td colspan="1" rowspan="1"><p>Execution</p>
+</td><td colspan="1" rowspan="1"><p>Total time</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Sequential (one at a time)</p>
+</td><td colspan="1" rowspan="1"><p>blog (10s) → social (10s) → email (10s) → SEO (10s)</p>
+</td><td colspan="1" rowspan="1"><p>~40 seconds</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Parallel (all at once)</p>
+</td><td colspan="1" rowspan="1"><p>blog ‖ social ‖ email ‖ SEO</p>
+</td><td colspan="1" rowspan="1"><p>~10 seconds</p>
+</td></tr>
+</table>
+<p>All four agents run concurrently, so the total time equals the slowest single agent — not the sum of all four. That&#39;s a <strong>4× latency reduction</strong> for this pipeline.</p>
 <p><strong>Important:</strong> Each parallel agent must write to a <strong>unique </strong><code>output_key</code>. If two agents share a key, one will overwrite the other&#39;s output.</p>
 <h2 is-upgraded>Fill in all four content agents</h2>
 <p>For each agent below, open the corresponding file and replace only the <code>TODO</code> instruction placeholder.</p>
@@ -928,7 +981,8 @@ print([a.name for a in full_content_workflow.sub_agents])
       </google-codelab-step>
     
       <google-codelab-step label="The Master Orchestrator" duration="0">
-        <p>The orchestrator is the entry point — it decides whether a request goes to the full content workflow or the text analyzer.</p>
+        <p>You now have a complete three-phase content pipeline. But users don&#39;t always want to create content — sometimes they want to analyze existing text. Rather than exposing two separate entry points, you&#39;ll wrap everything behind a single orchestrator that reads the user&#39;s intent and routes accordingly.</p>
+<p>This is the <strong>Coordinator</strong> pattern from the architecture framework: one LLM-Driven agent at the boundary, two Workflow-Driven agents behind it. The orchestrator decides; the specialists execute.</p>
 <h2 is-upgraded>Content Analyzer Agent</h2>
 <p>First, fill in the content analyzer. Open <code>sub_agents/content_analyzer_agent/agent.py</code>:</p>
 <pre><code language="language-python" class="language-python"># content_creation_studio/sub_agents/content_analyzer_agent/agent.py
@@ -984,7 +1038,7 @@ master_orchestrator_agent = Agent(
 
 root_agent = master_orchestrator_agent
 </code></pre>
-<p>The callbacks and <code>PreloadMemoryTool</code> are already imported at the top of <code>agent.py</code>. The callback functions are stubs right now — they&#39;ll do nothing until you fill them in during Steps 14 and 16.</p>
+<p>The callbacks and <code>PreloadMemoryTool</code> are already imported at the top of <code>agent.py</code>. The callback functions are stubs right now — they&#39;ll do nothing until you fill them in during the <strong>Callbacks</strong> and <strong>Long-Term Memory</strong> sections.</p>
 <p><strong><code>sub_agents</code></strong></p>
 <p><strong> vs </strong></p>
 <p><strong><code>AgentTool</code></strong></p>
@@ -1123,34 +1177,39 @@ def after_model_callback(
       </google-codelab-step>
     
       <google-codelab-step label="Artifacts — Persistent File Storage (Optional)" duration="0">
-        <p>You&#39;ve seen two data persistence layers so far: <strong>session state</strong> (lives for one conversation) and <strong>memory</strong> (lives across all conversations). Artifacts are the third layer: named, versioned file storage tied to a session.</p>
+        <p>You&#39;ve worked with one data persistence layer so far: <strong>session state</strong> (lives for one conversation, passed between agents via <code>output_key</code> and <code>&#123;&#123;key}}</code>). Artifacts are the second layer: named, versioned file storage that outlasts a session. A third layer — <strong>long-term memory</strong> — is covered in the next section.</p>
 <h2 is-upgraded>The three-layer persistence model</h2>
 <table>
 <tr><td colspan="1" rowspan="1"><p>Layer</p>
 </td><td colspan="1" rowspan="1"><p>Scope</p>
-</td><td colspan="1" rowspan="1"><p>Storage</p>
+</td><td colspan="1" rowspan="1"><p>Content</p>
 </td><td colspan="1" rowspan="1"><p>How to write</p>
 </td><td colspan="1" rowspan="1"><p>How to read</p>
+</td><td colspan="1" rowspan="1"><p>Use case</p>
 </td></tr>
 <tr><td colspan="1" rowspan="1"><p><strong>Session state</strong></p>
 </td><td colspan="1" rowspan="1"><p>One conversation</p>
-</td><td colspan="1" rowspan="1"><p><code>InMemorySessionService</code></p>
+</td><td colspan="1" rowspan="1"><p>Key-value pairs</p>
 </td><td colspan="1" rowspan="1"><p><code>output_key</code> or direct state mutation</p>
 </td><td colspan="1" rowspan="1"><p><code>&#123;&#123;key}}</code> templating</p>
+</td><td colspan="1" rowspan="1"><p>Agent-to-agent data passing within a pipeline</p>
 </td></tr>
 <tr><td colspan="1" rowspan="1"><p><strong>Artifacts</strong></p>
 </td><td colspan="1" rowspan="1"><p>One session (or across sessions with <code>user:</code> prefix)</p>
-</td><td colspan="1" rowspan="1"><p><code>InMemoryArtifactService</code> (dev) / <code>GcsArtifactService</code> (prod)</p>
+</td><td colspan="1" rowspan="1"><p>Files (text, binary)</p>
 </td><td colspan="1" rowspan="1"><p><code>tool_context.save_artifact()</code></p>
 </td><td colspan="1" rowspan="1"><p><code>tool_context.load_artifact()</code></p>
+</td><td colspan="1" rowspan="1"><p>Saving generated files (e.g., <code>blog_post.md</code>)</p>
 </td></tr>
 <tr><td colspan="1" rowspan="1"><p><strong>Memory</strong></p>
 </td><td colspan="1" rowspan="1"><p>All conversations</p>
-</td><td colspan="1" rowspan="1"><p><code>InMemoryMemoryService</code> (dev) / Vertex AI Memory Bank (prod)</p>
+</td><td colspan="1" rowspan="1"><p>Conversation summaries</p>
 </td><td colspan="1" rowspan="1"><p><code>memory_service.add_session_to_memory()</code></p>
 </td><td colspan="1" rowspan="1"><p><code>PreloadMemoryTool</code></p>
+</td><td colspan="1" rowspan="1"><p>Cross-session continuity (&#34;last time you asked about...&#34;)</p>
 </td></tr>
 </table>
+<p>Choose based on lifetime: state for within-session coordination, artifacts for persisting files, memory for cross-session continuity.</p>
 <h2 is-upgraded>When to use artifacts</h2>
 <p>Use artifacts when you need to:</p>
 <ul>
@@ -1215,25 +1274,26 @@ await tool_context.save_artifact(filename=&#34;user:blog_post.md&#34;, artifact=
     
       <google-codelab-step label="Long-Term Memory (Optional)" duration="0">
         <p>Your agents currently remember nothing between sessions. Let&#39;s fix that.</p>
-<h2 is-upgraded>Session vs Memory</h2>
+<p>You&#39;ve already seen the full three-layer persistence model in the <strong>Artifacts</strong> section. Memory is the third layer — it extends beyond the current session:</p>
 <table>
-<tr><td colspan="1" rowspan="1"></td><td colspan="1" rowspan="1"><p>Session</p>
-</td><td colspan="1" rowspan="1"><p>Memory</p>
+<tr><td colspan="1" rowspan="1"><p>Layer</p>
+</td><td colspan="1" rowspan="1"><p>Scope</p>
+</td><td colspan="1" rowspan="1"><p>How to write</p>
+</td><td colspan="1" rowspan="1"><p>How to read</p>
 </td></tr>
-<tr><td colspan="1" rowspan="1"><p>Scope</p>
-</td><td colspan="1" rowspan="1"><p>Single conversation</p>
-</td><td colspan="1" rowspan="1"><p>Across all conversations</p>
-</td></tr>
-<tr><td colspan="1" rowspan="1"><p>Storage</p>
-</td><td colspan="1" rowspan="1"><p><code>InMemorySessionService</code></p>
-</td><td colspan="1" rowspan="1"><p><code>InMemoryMemoryService</code></p>
-</td></tr>
-<tr><td colspan="1" rowspan="1"><p>How to write</p>
-</td><td colspan="1" rowspan="1"><p><code>output_key</code> or tool</p>
-</td><td colspan="1" rowspan="1"><p><code>memory_service.add_session_to_memory(session)</code></p>
-</td></tr>
-<tr><td colspan="1" rowspan="1"><p>How to read</p>
+<tr><td colspan="1" rowspan="1"><p><strong>Session state</strong></p>
+</td><td colspan="1" rowspan="1"><p>One conversation</p>
+</td><td colspan="1" rowspan="1"><p><code>output_key</code></p>
 </td><td colspan="1" rowspan="1"><p><code>&#123;&#123;key}}</code> templating</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><strong>Artifacts</strong></p>
+</td><td colspan="1" rowspan="1"><p>One session (or cross-session with <code>user:</code> prefix)</p>
+</td><td colspan="1" rowspan="1"><p><code>tool_context.save_artifact()</code></p>
+</td><td colspan="1" rowspan="1"><p><code>tool_context.load_artifact()</code></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><strong>Memory</strong></p>
+</td><td colspan="1" rowspan="1"><p>All conversations</p>
+</td><td colspan="1" rowspan="1"><p><code>memory_service.add_session_to_memory(session)</code></p>
 </td><td colspan="1" rowspan="1"><p><code>PreloadMemoryTool</code></p>
 </td></tr>
 </table>
@@ -1318,14 +1378,6 @@ await tool_context.save_artifact(filename=&#34;user:blog_post.md&#34;, artifact=
 </td></tr>
 </table>
 <p><strong>Learning vs production:</strong> The deployment you&#39;ll do in this workshop is for demonstration purposes. Production systems require additional work: comprehensive testing, CI/CD pipelines, model evaluation, and security hardening — topics beyond this codelab&#39;s scope.</p>
-<h2 is-upgraded>Why Agent Engine?</h2>
-<p>Running locally is great for development. Agent Engine provides:</p>
-<ul>
-<li><strong>Managed infrastructure</strong> — no servers to manage</li>
-<li><strong>Persistent sessions</strong> — sessions survive process restarts</li>
-<li><strong>Memory Bank</strong> — production-grade long-term memory</li>
-<li><strong>Tracing</strong> — full observability in Cloud Trace</li>
-</ul>
 <h2 is-upgraded>Enable the Vertex AI API and create a GCS bucket</h2>
 <pre><code language="language-bash" class="language-bash">gcloud services enable aiplatform.googleapis.com
 gcloud storage buckets create gs://$GOOGLE_CLOUD_PROJECT-content-studio --location=us-central1
@@ -1353,20 +1405,6 @@ gcloud storage buckets create gs://$GOOGLE_CLOUD_PROJECT-content-studio --locati
       <google-codelab-step label="Full-Stack Cloud Run Deployment" duration="0">
         <p><strong>Prerequisites:</strong> Agent Engine deployed (previous section) and <code>AGENT_ENGINE_RESOURCE_NAME</code> set in your <code>.env</code>.</p>
 <p>So far you&#39;ve run the agent locally via <code>adk web</code>. In this step you&#39;ll deploy a production web application: a React frontend served by a FastAPI backend, both packaged in a single Docker container on Cloud Run.</p>
-<h2 is-upgraded>Architecture</h2>
-<pre><code language="language-text" class="language-text">Browser
-  │  HTTPS
-  ▼
-Cloud Run (single service, port 8080)
-  ├── React frontend (static files, served by FastAPI)
-  └── FastAPI backend
-        │  gRPC / REST
-        ▼
-      Vertex AI Agent Engine
-              │
-              ▼
-          Gemini API
-</code></pre>
 <h2 is-upgraded>How the backend connects to Agent Engine</h2>
 <p>Open <code>backend/api_server.py</code>. The key section:</p>
 <pre><code language="language-python" class="language-python">from vertexai import agent_engines
@@ -1564,7 +1602,7 @@ Deployed on:
 </td><td colspan="1" rowspan="1"><p>All 9 specialized agents</p>
 </td></tr>
 <tr><td colspan="1" rowspan="1"><p><code>Runner</code>, <code>Session</code>, <code>SessionService</code></p>
-</td><td colspan="1" rowspan="1"><p>ADK runtime fundamentals (Step 3)</p>
+</td><td colspan="1" rowspan="1"><p>ADK runtime fundamentals (<strong>ADK Core Concepts</strong> section)</p>
 </td></tr>
 <tr><td colspan="1" rowspan="1"><p><code>output_key</code></p>
 </td><td colspan="1" rowspan="1"><p>Every agent that passes data downstream</p>
@@ -1576,7 +1614,7 @@ Deployed on:
 </td><td colspan="1" rowspan="1"><p>Coordination pattern trade-offs (<strong>Agent Teams</strong> section)</p>
 </td></tr>
 <tr><td colspan="1" rowspan="1"><p>LLM-Driven vs Workflow-Driven</p>
-</td><td colspan="1" rowspan="1"><p>Architecture design decisions (Step 8)</p>
+</td><td colspan="1" rowspan="1"><p>Architecture design decisions (<strong>Choosing the Right Architecture</strong> section)</p>
 </td></tr>
 <tr><td colspan="1" rowspan="1"><p><code>SequentialAgent</code></p>
 </td><td colspan="1" rowspan="1"><p>research_and_draft_workflow, full_content_workflow</p>
@@ -1600,7 +1638,7 @@ Deployed on:
 </td><td colspan="1" rowspan="1"><p>Response metrics logging</p>
 </td></tr>
 <tr><td colspan="1" rowspan="1"><p>Artifacts + <code>ToolContext</code></p>
-</td><td colspan="1" rowspan="1"><p>Persistent file storage (Step 15)</p>
+</td><td colspan="1" rowspan="1"><p>Persistent file storage (<strong>Artifacts</strong> section)</p>
 </td></tr>
 <tr><td colspan="1" rowspan="1"><p><code>PreloadMemoryTool</code></p>
 </td><td colspan="1" rowspan="1"><p>Cross-session memory recall</p>

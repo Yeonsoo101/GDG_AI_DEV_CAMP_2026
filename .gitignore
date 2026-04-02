@@ -62,3 +62,18 @@ codelab/PUBLISH.md
 
 # claat local export (use docs/ for GitHub Pages)
 content-creation-studio-adk/
+
+# Reference SVGs
+refs/
+
+# Agent skills
+.agent/
+
+# Working/source diagram and image files (not served via GitHub Pages)
+docs/multi-agent-system.png
+docs/multi-agent-system.drawio
+docs/GCP Share Library.drawio.xml
+docs/content_creation_studio.drawio
+docs/architecture.drawio
+docs/architecture_v2.png
+docs/architecture_v2.drawio
