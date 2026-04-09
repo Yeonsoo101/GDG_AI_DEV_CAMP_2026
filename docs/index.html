@@ -300,7 +300,7 @@ Your code / adk web UI    ← reads events, displays the result
     
       <google-codelab-step label="Your First Agent: Topic Research" duration="0">
         <p>Open the agent file in Cloud Shell Editor:</p>
-<pre><code language="language-bash" class="language-bash">cloudshell edit topic_research_agent/agent.py
+<pre><code language="language-bash" class="language-bash">cloudshell edit agents/topic_research_agent/agent.py
 </code></pre>
 <h2 is-upgraded>The Agent constructor</h2>
 <p>Every ADK agent is defined with the <code>Agent</code> class. The key parameters:</p>
@@ -662,7 +662,7 @@ coordinator/orchestrator
 </code></pre>
 <h2 is-upgraded>Fill in the content drafter</h2>
 <p>Before wiring up the workflow, open the content drafter agent:</p>
-<pre><code language="language-bash" class="language-bash">cloudshell edit content_drafter_agent/agent.py
+<pre><code language="language-bash" class="language-bash">cloudshell edit agents/content_drafter_agent/agent.py
 </code></pre>
 <p>Replace the <code>TODO: #REPLACE-content-drafter-instruction</code> placeholder with:</p>
 <pre><code language="language-python" class="language-python">    You are a content writer. Write a blog post: &#123;&#123;blog_topic}}
@@ -751,7 +751,7 @@ content_drafter_agent
         → content_improver_agent (sees &#34;QUALITY_THRESHOLD_MET&#34;, calls exit_loop → STOP)
 </code></pre>
 <h2 is-upgraded>Fill in the quality checker</h2>
-<pre><code language="language-bash" class="language-bash">cloudshell edit quality_checker_agent/agent.py
+<pre><code language="language-bash" class="language-bash">cloudshell edit agents/quality_checker_agent/agent.py
 </code></pre>
 <p>Replace the <code>TODO: #REPLACE-quality-checker-instruction</code> placeholder with:</p>
 <pre><code language="language-python" class="language-python">    You are a content quality analyst. Analyze: &#123;&#123;current_content}}
@@ -771,7 +771,7 @@ content_drafter_agent
 <aside class="special"><p><strong>Note on double braces:</strong> The instruction is an f-string, so write <code>&#123;&#123;current_content}}</code> - Python converts double braces to single braces, giving ADK the <code>{current_content}</code> it needs for state substitution.</p>
 </aside>
 <h2 is-upgraded>Fill in the content improver</h2>
-<pre><code language="language-bash" class="language-bash">cloudshell edit content_improver_agent/agent.py
+<pre><code language="language-bash" class="language-bash">cloudshell edit agents/content_improver_agent/agent.py
 </code></pre>
 <p>Replace the <code>TODO: #REPLACE-content-improver-instruction</code> placeholder with:</p>
 <pre><code language="language-python" class="language-python">    Current content: &#123;&#123;current_content}}
@@ -854,7 +854,7 @@ quality_improvement_loop = LoopAgent(
 <h2 is-upgraded>Fill in all four content agents</h2>
 <p>For each agent below, open the file and replace only the <code>TODO</code> instruction placeholder.</p>
 <p><strong>Blog Post Writer:</strong></p>
-<pre><code language="language-bash" class="language-bash">cloudshell edit blog_post_writer_agent/agent.py
+<pre><code language="language-bash" class="language-bash">cloudshell edit agents/blog_post_writer_agent/agent.py
 </code></pre>
 <p>Replace <code>TODO: #REPLACE-blog-post-writer-instruction</code> with:</p>
 <pre><code language="language-python" class="language-python">    You are a professional blog writer. Create the final polished blog post from: &#123;&#123;current_content}}
@@ -868,7 +868,7 @@ quality_improvement_loop = LoopAgent(
     Output only the final blog post in markdown.
 </code></pre>
 <p><strong>Social Media Creator:</strong></p>
-<pre><code language="language-bash" class="language-bash">cloudshell edit social_media_creator_agent/agent.py
+<pre><code language="language-bash" class="language-bash">cloudshell edit agents/social_media_creator_agent/agent.py
 </code></pre>
 <p>Replace <code>TODO: #REPLACE-social-media-creator-instruction</code> with:</p>
 <pre><code language="language-python" class="language-python">    You are a social media specialist. Create posts from: &#123;&#123;current_content}}
@@ -881,7 +881,7 @@ quality_improvement_loop = LoopAgent(
     Format with clear headers for each platform.
 </code></pre>
 <p><strong>Email Newsletter Writer:</strong></p>
-<pre><code language="language-bash" class="language-bash">cloudshell edit email_newsletter_writer_agent/agent.py
+<pre><code language="language-bash" class="language-bash">cloudshell edit agents/email_newsletter_writer_agent/agent.py
 </code></pre>
 <p>Replace <code>TODO: #REPLACE-email-newsletter-instruction</code> with:</p>
 <pre><code language="language-python" class="language-python">    You are an email marketing specialist. Create a newsletter from: &#123;&#123;current_content}}
@@ -894,7 +894,7 @@ quality_improvement_loop = LoopAgent(
     Format with clear sections.
 </code></pre>
 <p><strong>SEO Metadata Agent:</strong></p>
-<pre><code language="language-bash" class="language-bash">cloudshell edit seo_metadata_agent/agent.py
+<pre><code language="language-bash" class="language-bash">cloudshell edit agents/seo_metadata_agent/agent.py
 </code></pre>
 <p>Replace <code>TODO: #REPLACE-seo-metadata-instruction</code> with:</p>
 <pre><code language="language-python" class="language-python">    You are an SEO specialist. Generate metadata based on: &#123;&#123;current_content}}
@@ -989,7 +989,7 @@ print([a.name for a in full_content_workflow.sub_agents])
 <p>This is the <strong>Coordinator</strong> pattern from the architecture framework: one LLM-Driven agent at the boundary, two Workflow-Driven agents behind it. The orchestrator decides; the specialists execute.</p>
 <h2 is-upgraded>Content Analyzer Agent</h2>
 <p>First, open the content analyzer file:</p>
-<pre><code language="language-bash" class="language-bash">cloudshell edit content_analyzer_agent/agent.py
+<pre><code language="language-bash" class="language-bash">cloudshell edit agents/content_analyzer_agent/agent.py
 </code></pre>
 <p>Fill it in with:</p>
 <pre><code language="language-python" class="language-python"># content_analyzer_agent/agent.py
