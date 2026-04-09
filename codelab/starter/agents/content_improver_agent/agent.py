@@ -1,6 +1,6 @@
 from google.adk.agents import Agent
-from content_creation_studio.tools import exit_loop, QUALITY_THRESHOLD_MET
-from content_creation_studio.config import MODEL_NAME
+from tools import exit_loop, QUALITY_THRESHOLD_MET
+from config import MODEL_NAME
 
 content_improver_agent = Agent(
     name="content_improver_agent",

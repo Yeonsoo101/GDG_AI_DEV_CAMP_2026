@@ -1,6 +1,6 @@
 from google.adk.agents import Agent
 from google.adk.tools import google_search
-from content_creation_studio.config import MODEL_NAME
+from config import MODEL_NAME
 
 topic_research_agent = Agent(
     name="topic_research_agent",

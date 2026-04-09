@@ -329,7 +329,7 @@ Your code / adk web UI    ← reads events, displays the result
 <pre><code language="language-python" class="language-python"># topic_research_agent/agent.py
 from google.adk.agents import Agent
 from google.adk.tools import google_search
-from content_creation_studio.config import MODEL_NAME
+from config import MODEL_NAME
 
 topic_research_agent = Agent(
     name=&#34;topic_research_agent&#34;,
@@ -345,13 +345,13 @@ topic_research_agent = Agent(
     output_key=&#34;blog_topic&#34;,
 )
 </code></pre>
-<aside class="special"><p><strong>Note:</strong> We pass <code>model=MODEL_NAME</code> as a plain string. This lets ADK construct the model object at runtime - using Vertex AI credentials on Agent Engine and your local API key during development - without pickling a pre-configured <code>Gemini</code> object. <code>MODEL_NAME</code>, <code>QUALITY_SCORE_THRESHOLD</code>, and <code>MAX_IMPROVEMENT_ITERATIONS</code> are all defined in <code>content_creation_studio/config.py</code> and shared across all agents - change the model or thresholds in one place and every agent picks it up.</p>
+<aside class="special"><p><strong>Note:</strong> We pass <code>model=MODEL_NAME</code> as a plain string. This lets ADK construct the model object at runtime - using Vertex AI credentials on Agent Engine and your local API key during development - without pickling a pre-configured <code>Gemini</code> object. <code>MODEL_NAME</code>, <code>QUALITY_SCORE_THRESHOLD</code>, and <code>MAX_IMPROVEMENT_ITERATIONS</code> are all defined in <code>agents/config.py</code> and shared across all agents - change the model or thresholds in one place and every agent picks it up.</p>
 </aside>
 <p><strong>Why output_key?</strong> Without it, the agent&#39;s response exists only as a conversation message. With <code>output_key="blog_topic"</code>, ADK automatically writes the response text to <code>session.state["blog_topic"]</code> - making it available to every other agent in the pipeline via <code>&#123;&#123;blog_topic}}</code> templating.</p>
 <h2 is-upgraded>Test the agent</h2>
 <p><code>adk web</code> is ADK&#39;s built-in dev server. It discovers every agent package in your directory and serves a chat UI where you can test them interactively.</p>
-<p>Start it from the <code>starter/</code> directory:</p>
-<pre><code language="language-bash" class="language-bash">adk web --port 8080 --reload_agents
+<p>Start it from the <code>agents/</code> directory:</p>
+<pre><code language="language-bash" class="language-bash">cd agents &amp;&amp; adk web --port 8080 --reload_agents
 </code></pre>
 <p>Then open it in your browser via <strong>Web Preview</strong>:</p>
 <ol type="1">
@@ -359,7 +359,7 @@ topic_research_agent = Agent(
 <li>Select <strong>&#34;Preview on port 8080&#34;</strong></li>
 </ol>
 <p>A new browser tab opens with the ADK Dev UI. Select <code>topic_research_agent</code> from the dropdown, then type:</p>
-<aside class="special"><p><strong>How testing works throughout this codelab:</strong> Each individual agent is its own package — <code>adk web</code> discovers all of them automatically. Just select the one you want from the dropdown. Workflow agents (<code>SequentialAgent</code>, <code>LoopAgent</code>, <code>ParallelAgent</code>) are assembled in <code>content_creation_studio/agent.py</code> and require a temporary <code>root_agent</code> change to test — the instructions will tell you when.</p>
+<aside class="special"><p><strong>How testing works throughout this codelab:</strong> Each individual agent is its own package — <code>adk web</code> discovers all of them automatically. Just select the one you want from the dropdown. Workflow agents (<code>SequentialAgent</code>, <code>LoopAgent</code>, <code>ParallelAgent</code>) are assembled in <code>agents/orchestrator_agent/agent.py</code> and require a temporary <code>root_agent</code> change to test — the instructions will tell you when.</p>
 </aside>
 <pre><code language="language-text" class="language-text">Find the best blog topic about sustainable packaging for eco-conscious millennials
 </code></pre>
@@ -376,7 +376,7 @@ topic_research_agent = Agent(
     
       <google-codelab-step label="Building Custom Tools" duration="0">
         <p>Open the tools file in Cloud Shell Editor:</p>
-<pre><code language="language-bash" class="language-bash">cloudshell edit content_creation_studio/tools.py
+<pre><code language="language-bash" class="language-bash">cloudshell edit agents/tools.py
 </code></pre>
 <p>The tools are already implemented - your job in this step is to read and understand them before using them in later steps.</p>
 <h2 is-upgraded>How ADK tools work</h2>
@@ -411,7 +411,7 @@ agent = Agent(
 </code></pre>
 <p>You&#39;ll see <code>FunctionTool</code> used in the agent files starting from the <strong>Quality Loop</strong> section.</p>
 <h2 is-upgraded>Walk through the tools in <code>tools.py</code></h2>
-<p>Open <code>content_creation_studio/tools.py</code> and read through each function. Here is what each tool does and why it exists:</p>
+<p>Open <code>agents/tools.py</code> and read through each function. Here is what each tool does and why it exists:</p>
 <table>
 <tr><td colspan="1" rowspan="1"><p>Tool</p>
 </td><td colspan="1" rowspan="1"><p>Returns</p>
@@ -448,7 +448,7 @@ agent = Agent(
 </code></pre>
 <h2 is-upgraded>Verify</h2>
 <pre><code language="language-bash" class="language-bash">python -c &#34;
-from content_creation_studio.tools import count_words, calculate_readability_score
+from tools import count_words, calculate_readability_score
 print(count_words(&#39;Hello world this is a test&#39;))
 print(calculate_readability_score(&#39;The cat sat on the mat. It was a good day.&#39;))
 &#34;
@@ -678,7 +678,7 @@ coordinator/orchestrator
 </aside>
 <h2 is-upgraded>Fill in the first workflow</h2>
 <p>Open the main agent file:</p>
-<pre><code language="language-bash" class="language-bash">cloudshell edit content_creation_studio/agent.py
+<pre><code language="language-bash" class="language-bash">cloudshell edit agents/orchestrator_agent/agent.py
 </code></pre>
 <p>Find the <code># TODO: #REPLACE-research-and-draft-workflow</code> comment and replace it with:</p>
 <pre><code language="language-python" class="language-python">research_and_draft_workflow = SequentialAgent(
@@ -686,7 +686,7 @@ coordinator/orchestrator
     sub_agents=[topic_research_agent, content_drafter_agent],
 )
 </code></pre>
-<p>At the bottom of <code>content_creation_studio/agent.py</code>, set:</p>
+<p>At the bottom of <code>agents/orchestrator_agent/agent.py</code>, set:</p>
 <pre><code language="language-python" class="language-python">root_agent = research_and_draft_workflow
 </code></pre>
 <h2 is-upgraded>Test the sequential workflow</h2>
@@ -790,7 +790,7 @@ content_drafter_agent
       Output the COMPLETE improved content in markdown.
 </code></pre>
 <h2 is-upgraded>Fill in the LoopAgent</h2>
-<pre><code language="language-python" class="language-python"># content_creation_studio/agent.py
+<pre><code language="language-python" class="language-python"># agents/orchestrator_agent/agent.py
 
 quality_improvement_loop = LoopAgent(
     name=&#34;quality_improvement_loop&#34;,
@@ -799,7 +799,7 @@ quality_improvement_loop = LoopAgent(
 )
 </code></pre>
 <h2 is-upgraded>Test with the sequential + loop pipeline</h2>
-<p>Update the bottom of <code>content_creation_studio/agent.py</code>:</p>
+<p>Update the bottom of <code>agents/orchestrator_agent/agent.py</code>:</p>
 <pre><code language="language-python" class="language-python">root_agent = SequentialAgent(
     name=&#34;two_phase_pipeline&#34;,
     sub_agents=[research_and_draft_workflow, quality_improvement_loop],
@@ -909,7 +909,7 @@ quality_improvement_loop = LoopAgent(
     Format as readable markdown with bold labels, not JSON.
 </code></pre>
 <h2 is-upgraded>Fill in the ParallelAgent</h2>
-<pre><code language="language-python" class="language-python"># content_creation_studio/agent.py
+<pre><code language="language-python" class="language-python"># agents/orchestrator_agent/agent.py
 
 parallel_content_creation = ParallelAgent(
     name=&#34;parallel_content_creation&#34;,
@@ -922,7 +922,7 @@ parallel_content_creation = ParallelAgent(
 )
 </code></pre>
 <h2 is-upgraded>Test</h2>
-<p>The parallel agents read <code>&#123;&#123;current_content}}</code> from session state - they can&#39;t run standalone. Update <code>root_agent</code> in <code>content_creation_studio/agent.py</code> to wire all three phases together:</p>
+<p>The parallel agents read <code>&#123;&#123;current_content}}</code> from session state - they can&#39;t run standalone. Update <code>root_agent</code> in <code>agents/orchestrator_agent/agent.py</code> to wire all three phases together:</p>
 <pre><code language="language-python" class="language-python">root_agent = SequentialAgent(
     name=&#34;three_phase_pipeline&#34;,
     sub_agents=[research_and_draft_workflow, quality_improvement_loop, parallel_content_creation],
@@ -946,8 +946,8 @@ seo_metadata       → &#34;**Meta Title:** ...&#34;
       <google-codelab-step label="Assemble the Full Pipeline" duration="0">
         <p>Now compose all three phases into the complete content workflow.</p>
 <h2 is-upgraded>Fill in the full workflow</h2>
-<p>Replace the temporary <code>root_agent</code> at the bottom of <code>content_creation_studio/agent.py</code> with the complete pipeline:</p>
-<pre><code language="language-python" class="language-python"># content_creation_studio/agent.py
+<p>Replace the temporary <code>root_agent</code> at the bottom of <code>agents/orchestrator_agent/agent.py</code> with the complete pipeline:</p>
+<pre><code language="language-python" class="language-python"># agents/orchestrator_agent/agent.py
 
 full_content_workflow = SequentialAgent(
     name=&#34;full_content_workflow&#34;,
@@ -975,7 +975,7 @@ root_agent = full_content_workflow
 </code></pre>
 <h2 is-upgraded>Verify the structure</h2>
 <pre><code language="language-python" class="language-python">python -c &#34;
-from content_creation_studio.agent import full_content_workflow
+from agents.orchestrator_agent.agent import full_content_workflow
 print([a.name for a in full_content_workflow.sub_agents])
 &#34;
 </code></pre>
@@ -1015,7 +1015,7 @@ content_analyzer_agent = Agent(
 )
 </code></pre>
 <h2 is-upgraded>Fill in the master orchestrator</h2>
-<pre><code language="language-python" class="language-python"># content_creation_studio/agent.py
+<pre><code language="language-python" class="language-python"># agents/orchestrator_agent/agent.py
 
 master_orchestrator_agent = Agent(
     name=&#34;master_orchestrator_agent&#34;,
@@ -1070,7 +1070,7 @@ Hashtags: #ArtificialIntelligence #BusinessTransformation #AI #Technology #Innov
     
       <google-codelab-step label="Callbacks: Observability &amp; Safety (Optional)" duration="0">
         <p>Callbacks let you intercept agent execution at six points without modifying agent logic. Open the callbacks file:</p>
-<pre><code language="language-bash" class="language-bash">cloudshell edit content_creation_studio/callbacks.py
+<pre><code language="language-bash" class="language-bash">cloudshell edit agents/callbacks.py
 </code></pre>
 <p>The imports, type annotations, <code>_extract_session_id</code> helper, and <code>BLOCKED_TOPICS</code> list are already provided - fill in the four function bodies.</p>
 <h2 is-upgraded>The six callback hooks</h2>
@@ -1238,7 +1238,7 @@ def after_model_callback(
 <li><strong>Persist files across sessions</strong> by prefixing the filename with <code>user:</code> (e.g., <code>user:blog_post.md</code>)</li>
 </ul>
 <h2 is-upgraded>Explore the artifact tools</h2>
-<pre><code language="language-bash" class="language-bash">cloudshell edit content_creation_studio/artifacts.py
+<pre><code language="language-bash" class="language-bash">cloudshell edit agents/artifacts.py
 </code></pre>
 <p>It defines three tools:</p>
 <pre><code language="language-python" class="language-python">async def save_content_artifact(tool_context, filename, content) -&gt; dict:
@@ -1261,7 +1261,7 @@ async def load_content_artifact(tool_context, filename) -&gt; str:
 <p>Each function uses <code>tool_context</code> (injected by ADK) to call <code>save_artifact</code>, <code>list_artifacts</code>, and <code>load_artifact</code>. The <code>ToolContext</code> provides access to both the artifact service and the current session.</p>
 <h2 is-upgraded>How you&#39;d wire artifacts into an agent</h2>
 <p>To give an agent the ability to save content as a file, add these tools to its <code>tools</code> list:</p>
-<pre><code language="language-python" class="language-python">from content_creation_studio.artifacts import (
+<pre><code language="language-python" class="language-python">from artifacts import (
     save_content_artifact,
     list_content_artifacts,
     load_content_artifact,
@@ -1426,7 +1426,7 @@ gcloud storage buckets create gs://$GOOGLE_CLOUD_PROJECT-content-studio --locati
 <h2 is-upgraded>Deploy</h2>
 <pre><code language="language-bash" class="language-bash">python deployment/deploy.py --action deploy
 </code></pre>
-<p>This packages your <code>content_creation_studio/</code> module, uploads it to GCS, and deploys it to Agent Engine. The process takes 5-10 minutes. When complete, it prints a resource name like:</p>
+<p>This packages your <code>agents/</code> module, uploads it to GCS, and deploys it to Agent Engine. The process takes 5-10 minutes. When complete, it prints a resource name like:</p>
 <pre><code language="language-text" class="language-text">projects/123456/locations/us-central1/reasoningEngines/789012345
 </code></pre>
 <p>Copy this into your <code>.env</code>:</p>
@@ -1558,7 +1558,7 @@ async def serve_frontend():
 <p>Expected response:</p>
 <pre><code language="language-json" class="language-json">{
   &#34;status&#34;: &#34;ok&#34;,
-  &#34;agent&#34;: &#34;content_creation_studio&#34;,
+  &#34;agent&#34;: &#34;orchestrator_agent&#34;,
   &#34;agent_connected&#34;: true
 }
 </code></pre>

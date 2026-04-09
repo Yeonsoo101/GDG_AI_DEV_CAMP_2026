@@ -1,5 +1,5 @@
 from google.adk.agents import Agent
-from content_creation_studio.config import MODEL_NAME
+from config import MODEL_NAME
 
 content_drafter_agent = Agent(
     name="content_drafter_agent",

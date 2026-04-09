@@ -1,5 +1,5 @@
 from google.adk.agents import Agent
-from content_creation_studio.config import MODEL_NAME
+from config import MODEL_NAME
 
 social_media_creator_agent = Agent(
     name="social_media_creator_agent",

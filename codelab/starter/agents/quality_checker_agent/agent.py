@@ -1,7 +1,7 @@
 from google.adk.agents import Agent
 from google.adk.tools import FunctionTool
-from content_creation_studio.tools import calculate_content_quality_score, QUALITY_THRESHOLD_MET
-from content_creation_studio.config import MODEL_NAME
+from tools import calculate_content_quality_score, QUALITY_THRESHOLD_MET
+from config import MODEL_NAME
 
 quality_checker_agent = Agent(
     name="quality_checker_agent",

@@ -1,5 +1,5 @@
 from google.adk.agents import Agent
-from content_creation_studio.config import MODEL_NAME
+from config import MODEL_NAME
 
 email_newsletter_writer_agent = Agent(
     name="email_newsletter_writer_agent",
