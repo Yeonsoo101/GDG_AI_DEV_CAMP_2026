@@ -376,19 +376,12 @@ topic_research_agent = Agent(
 </aside>
 <p><strong>Why output_key?</strong> Without it, the agent&#39;s response exists only as a conversation message. With <code>output_key="blog_topic"</code>, ADK automatically writes the response text to <code>session.state["blog_topic"]</code> - making it available to every other agent in the pipeline via <code>&#123;&#123;blog_topic}}</code> templating.</p>
 <h2 is-upgraded>Test the agent</h2>
-<aside class="special"><p><strong>How testing works throughout this codelab: </strong><code>adk web</code> loads whichever agent is assigned to <code>root_agent</code> in <code>agent.py</code>. Each step asks you to temporarily point <code>root_agent</code> at the agent you&#39;re building so you can test it in isolation, then revert before the next step. This keeps each test focused without requiring separate files.</p>
+<aside class="special"><p><strong>How testing works throughout this codelab:</strong> Each individual agent is its own package in the <code>starter/</code> directory. <code>adk web</code> discovers all of them automatically — just select the one you want to test from the dropdown. Workflow agents (<code>SequentialAgent</code>, <code>LoopAgent</code>, <code>ParallelAgent</code>) are assembled in <code>content_creation_studio/agent.py</code> and tested by temporarily setting <code>root_agent</code> there.</p>
 </aside>
-<p>In <code>content_creation_studio/agent.py</code>, find the last line and temporarily change it:</p>
-<pre><code language="language-python" class="language-python"># Change this:
-root_agent = master_orchestrator_agent
-
-# To this:
-root_agent = topic_research_agent
-</code></pre>
-<p>Then start the dev server:</p>
+<p>Start the dev server:</p>
 <pre><code language="language-bash" class="language-bash">adk web --port 8080 --reload_agents
 </code></pre>
-<p>Use the Cloud Shell Web Preview on port 8080 to open the ADK Dev UI (see <strong>Using the ADK Dev UI in Cloud Shell</strong> for how). Select <code>content_creation_studio</code> from the dropdown, then type:</p>
+<p>Use the Cloud Shell Web Preview on port 8080 to open the ADK Dev UI (see <strong>Using the ADK Dev UI in Cloud Shell</strong> for how). Select <code>topic_research_agent</code> from the dropdown, then type:</p>
 <pre><code language="language-text" class="language-text">Find the best blog topic about sustainable packaging for eco-conscious millennials
 </code></pre>
 <aside class="special"><p><strong>What to expect:</strong> This agent only researches and outputs a <strong>single blog title</strong> - it does not write the full blog. The full pipeline (draft → quality loop → publish-ready post) is assembled in later steps. You are just testing one piece of it here.</p>
@@ -398,8 +391,6 @@ root_agent = topic_research_agent
 </code></pre>
 <p>In the <strong>State</strong> tab, you&#39;ll see <code>blog_topic</code> appear with that value. In the <strong>Events</strong> panel, click any event to inspect the exact model request and response.</p>
 <p>Press <code>Ctrl+C</code> to stop the server.</p>
-<aside class="warning"><p><strong>Before moving on:</strong> Restore the last line of <code>agent.py</code> back to <code>root_agent = master_orchestrator_agent</code>. The final <code>root_agent</code> assignment will be set in the <strong>Master Orchestrator</strong> section.</p>
-</aside>
 
 
       </google-codelab-step>
@@ -716,9 +707,9 @@ coordinator/orchestrator
     sub_agents=[topic_research_agent, content_drafter_agent],
 )
 </code></pre>
-<p>For testing this step, temporarily update the last line of <code>agent.py</code>:</p>
+<p>For testing this step, temporarily update the last line of <code>content_creation_studio/agent.py</code>:</p>
 <pre><code language="language-python" class="language-python"># Change this:
-root_agent = topic_research_agent
+root_agent = master_orchestrator_agent
 
 # To this:
 root_agent = research_and_draft_workflow
@@ -735,7 +726,7 @@ current_content → &#34;# 10 Sustainable Packaging Innovations...\n\n...&#34;
 </code></pre>
 <aside class="special"><p><strong>Tip:</strong> Click any event in the Events panel to inspect the exact request and response sent to the model at that step.</p>
 </aside>
-<aside class="warning"><p><strong>Before moving on:</strong> Revert <code>root_agent</code> back to <code>topic_research_agent</code> in <code>agent.py</code>.</p>
+<aside class="warning"><p><strong>Before moving on:</strong> Remove the temporary <code>root_agent = research_and_draft_workflow</code> line from <code>content_creation_studio/agent.py</code> and restore <code>root_agent = master_orchestrator_agent</code>.</p>
 </aside>
 <aside class="special"><p><strong>Pattern in practice: </strong><code>research_and_draft_workflow</code> is a classic <strong>workflow-driven</strong> pipeline - topic research <em>always</em> runs before drafting, with no LLM making that routing decision. This is exactly the &#34;deterministic steps → Sequential&#34; case from the architecture decision framework you reviewed earlier.</p>
 </aside>
@@ -833,7 +824,7 @@ quality_improvement_loop = LoopAgent(
 )
 </code></pre>
 <h2 is-upgraded>Test with the sequential + loop pipeline</h2>
-<p>Update <code>agent.py</code> to test the combined first two phases:</p>
+<p>Update <code>content_creation_studio/agent.py</code> to test the combined first two phases:</p>
 <pre><code language="language-python" class="language-python">two_phase_pipeline = SequentialAgent(
     name=&#34;two_phase_pipeline&#34;,
     sub_agents=[research_and_draft_workflow, quality_improvement_loop],
@@ -852,7 +843,7 @@ root_agent = two_phase_pipeline
   📊 Model output for quality_checker_agent: ~45 words
 ■ AGENT DONE: quality_checker_agent (2.8s)
 </code></pre>
-<aside class="warning"><p><strong>Before moving on:</strong> Revert <code>root_agent</code> back to <code>topic_research_agent</code> in <code>agent.py</code>.</p>
+<aside class="warning"><p><strong>Before moving on:</strong> Remove the temporary <code>root_agent = two_phase_pipeline</code> line from <code>content_creation_studio/agent.py</code> and restore <code>root_agent = master_orchestrator_agent</code>.</p>
 </aside>
 
 
@@ -957,7 +948,7 @@ parallel_content_creation = ParallelAgent(
 )
 </code></pre>
 <h2 is-upgraded>Test</h2>
-<p>The parallel agents read <code>&#123;&#123;current_content}}</code> from session state - they can&#39;t run standalone. Test them as a three-phase pipeline by temporarily adding to <code>agent.py</code>:</p>
+<p>The parallel agents read <code>&#123;&#123;current_content}}</code> from session state - they can&#39;t run standalone. Test them as a three-phase pipeline by temporarily updating <code>content_creation_studio/agent.py</code>:</p>
 <pre><code language="language-python" class="language-python">three_phase_pipeline = SequentialAgent(
     name=&#34;three_phase_pipeline&#34;,
     sub_agents=[research_and_draft_workflow, quality_improvement_loop, parallel_content_creation],
@@ -973,7 +964,7 @@ social_media_posts → &#34;**LinkedIn Post**\n...&#34;
 email_newsletter   → &#34;**Subject Line:** ...&#34;
 seo_metadata       → &#34;**Meta Title:** ...&#34;
 </code></pre>
-<aside class="warning"><p><strong>Before moving on:</strong> Remove the <code>three_phase_pipeline</code> block and revert <code>root_agent</code> back to <code>topic_research_agent</code> in <code>agent.py</code>.</p>
+<aside class="warning"><p><strong>Before moving on:</strong> Remove the <code>three_phase_pipeline</code> block from <code>content_creation_studio/agent.py</code> and restore <code>root_agent = master_orchestrator_agent</code>.</p>
 </aside>
 
 
