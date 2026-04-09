@@ -24,3 +24,5 @@ content_analyzer_agent = Agent(
         # FunctionTool(generate_hashtags),
     ],
 )
+
+root_agent = content_analyzer_agent

@@ -17,3 +17,5 @@ social_media_creator_agent = Agent(
     tools=[],
     output_key="social_media_posts",  # Saves to session state["social_media_posts"]
 )
+
+root_agent = social_media_creator_agent

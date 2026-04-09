@@ -18,3 +18,5 @@ seo_metadata_agent = Agent(
     tools=[],
     output_key="seo_metadata",  # Saves to session state["seo_metadata"]
 )
+
+root_agent = seo_metadata_agent

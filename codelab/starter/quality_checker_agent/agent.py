@@ -19,3 +19,5 @@ quality_checker_agent = Agent(
     tools=[FunctionTool(calculate_content_quality_score)],
     output_key="quality_feedback",  # Saves feedback to session state["quality_feedback"]
 )
+
+root_agent = quality_checker_agent

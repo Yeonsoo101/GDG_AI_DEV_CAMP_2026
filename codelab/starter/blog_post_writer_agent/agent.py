@@ -18,3 +18,5 @@ blog_post_writer_agent = Agent(
     tools=[],
     output_key="final_blog_post",  # Saves to session state["final_blog_post"]
 )
+
+root_agent = blog_post_writer_agent

@@ -17,3 +17,5 @@ email_newsletter_writer_agent = Agent(
     tools=[],
     output_key="email_newsletter",  # Saves to session state["email_newsletter"]
 )
+
+root_agent = email_newsletter_writer_agent

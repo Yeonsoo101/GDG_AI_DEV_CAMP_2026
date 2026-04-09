@@ -19,3 +19,5 @@ content_drafter_agent = Agent(
     tools=[],
     output_key="current_content",  # Saves to session state["current_content"]
 )
+
+root_agent = content_drafter_agent

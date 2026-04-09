@@ -13,15 +13,15 @@ from content_creation_studio.callbacks import (
     before_model_callback,
     after_model_callback,
 )
-from content_creation_studio.sub_agents.topic_research_agent.agent import topic_research_agent
-from content_creation_studio.sub_agents.content_drafter_agent.agent import content_drafter_agent
-from content_creation_studio.sub_agents.quality_checker_agent.agent import quality_checker_agent
-from content_creation_studio.sub_agents.content_improver_agent.agent import content_improver_agent
-from content_creation_studio.sub_agents.blog_post_writer_agent.agent import blog_post_writer_agent
-from content_creation_studio.sub_agents.social_media_creator_agent.agent import social_media_creator_agent
-from content_creation_studio.sub_agents.email_newsletter_writer_agent.agent import email_newsletter_writer_agent
-from content_creation_studio.sub_agents.seo_metadata_agent.agent import seo_metadata_agent
-from content_creation_studio.sub_agents.content_analyzer_agent.agent import content_analyzer_agent
+from topic_research_agent.agent import topic_research_agent
+from content_drafter_agent.agent import content_drafter_agent
+from quality_checker_agent.agent import quality_checker_agent
+from content_improver_agent.agent import content_improver_agent
+from blog_post_writer_agent.agent import blog_post_writer_agent
+from social_media_creator_agent.agent import social_media_creator_agent
+from email_newsletter_writer_agent.agent import email_newsletter_writer_agent
+from seo_metadata_agent.agent import seo_metadata_agent
+from content_analyzer_agent.agent import content_analyzer_agent
 
 
 # --- Step 8: Sequential — Research and Draft ---

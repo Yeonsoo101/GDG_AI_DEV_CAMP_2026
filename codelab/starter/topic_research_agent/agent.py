@@ -17,3 +17,5 @@ topic_research_agent = Agent(
     tools=[google_search],
     output_key="blog_topic",  # Saves the agent's final response to session state["blog_topic"]
 )
+
+root_agent = topic_research_agent

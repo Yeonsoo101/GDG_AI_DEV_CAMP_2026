@@ -23,3 +23,5 @@ content_improver_agent = Agent(
     tools=[exit_loop],  # exit_loop sets tool_context.actions.escalate = True to break the loop
     output_key="current_content",  # Overwrites the previous draft in session state
 )
+
+root_agent = content_improver_agent
