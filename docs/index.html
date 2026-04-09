@@ -666,6 +666,7 @@ coordinator/orchestrator
     → runs topic_research_agent  (writes blog_topic to state)
     → then runs content_drafter_agent  (reads blog_topic from state)
 </code></pre>
+<p class="image-container"><img alt="SequentialAgent — research_and_draft_workflow runs sub-agents one after another" src="img/e0f7d9f2fa987c0e.png"></p>
 <h2 is-upgraded>Fill in the content drafter</h2>
 <p>Before wiring up the workflow, open the content drafter agent:</p>
 <pre><code language="language-bash" class="language-bash">cloudshell edit agents/content_drafter_agent/agent.py
@@ -759,6 +760,7 @@ content_drafter_agent
         → quality_checker_agent  (scores improved content, writes quality_feedback)
         → content_improver_agent (sees &#34;QUALITY_THRESHOLD_MET&#34;, calls exit_loop → STOP)
 </code></pre>
+<p class="image-container"><img alt="LoopAgent — quality_improvement_loop repeats until quality passes or max_iterations reached" src="img/58cc4c7d71da1583.png"></p>
 <h2 is-upgraded>Fill in the quality checker</h2>
 <pre><code language="language-bash" class="language-bash">cloudshell edit agents/quality_checker_agent/agent.py
 </code></pre>
@@ -845,6 +847,7 @@ quality_improvement_loop = LoopAgent(
     ├── email_newsletter_writer_agent (reads current_content → writes email_newsletter)
     └── seo_metadata_agent            (reads current_content → writes seo_metadata)
 </code></pre>
+<p class="image-container"><img alt="ParallelAgent — parallel_content_creation runs all sub-agents concurrently" src="img/3fff40461a3156a5.png"></p>
 <p><strong>Why it matters - the latency difference:</strong></p>
 <table>
 <tr><td colspan="1" rowspan="1"><p>Approach</p>
