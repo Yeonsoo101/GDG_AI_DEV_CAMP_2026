@@ -15,7 +15,10 @@ ENV_FILE="$PROJECT_ROOT/.env"
 
 if [ -f "$ENV_FILE" ]; then
     echo "Loading environment variables from $ENV_FILE..."
-    export $(cat "$ENV_FILE" | grep -v '^#' | xargs)
+    set -a
+    # shellcheck source=/dev/null
+    source <(grep -v '^\s*#' "$ENV_FILE" | grep -v '^\s*$' | sed 's/\s*#.*//')
+    set +a
 else
     echo "Error: .env file not found at $ENV_FILE"
     exit 1

@@ -22,7 +22,7 @@ from vertexai import agent_engines
 AGENT_RESOURCE_NAME = os.environ.get("AGENT_RESOURCE_NAME") or os.environ.get("AGENT_ENGINE_RESOURCE_NAME")
 
 # Agent name for session management
-AGENT_NAME = "content_creation_studio"
+AGENT_NAME = "orchestrator_agent"
 
 # Map sub-agent names to frontend channel names.
 # With sub_agents, inner events propagate and include the author field.

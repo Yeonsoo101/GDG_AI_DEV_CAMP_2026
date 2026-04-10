@@ -26,11 +26,11 @@ import vertexai
 from vertexai import agent_engines
 from google.adk.plugins.logging_plugin import LoggingPlugin
 
-# Add project root to Python path
+# Add project root to Python path so agents/ package is importable
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from content_creation_studio.agent import root_agent
+from agents.orchestrator_agent.agent import root_agent
 
 # Load environment variables from .env file
 load_dotenv()
@@ -115,7 +115,7 @@ def deploy_to_agent_engine():
             "vertexai>=1.38.0",
             "python-dotenv>=1.0.0",
         ],
-        extra_packages=["content_creation_studio"],
+        extra_packages=["agents"],
         display_name=DISPLAY_NAME,
         env_vars={
             "GOOGLE_CLOUD_AGENT_ENGINE_ENABLE_TELEMETRY": "true",
