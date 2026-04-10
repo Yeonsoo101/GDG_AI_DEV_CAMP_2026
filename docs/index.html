@@ -353,9 +353,11 @@ topic_research_agent = Agent(
 <p><strong>Why output_key?</strong> Without it, the agent&#39;s response exists only as a conversation message. With <code>output_key="blog_topic"</code>, ADK automatically writes the response text to <code>session.state["blog_topic"]</code> - making it available to every other agent in the pipeline via <code>&#123;&#123;blog_topic}}</code> templating.</p>
 <h2 is-upgraded>Test the agent</h2>
 <p><code>adk web</code> is ADK&#39;s built-in dev server. It discovers every agent package in your directory and serves a chat UI where you can test them interactively.</p>
-<p>Start it from the <code>agents/</code> directory:</p>
-<pre><code language="language-bash" class="language-bash">cd agents &amp;&amp; adk web --port 8080 --reload_agents
+<p>Start it from the <code>starter/</code> directory:</p>
+<pre><code language="language-bash" class="language-bash">PYTHONPATH=. adk web agents --port 8080
 </code></pre>
+<aside class="special"><p><strong>Why </strong><strong><code>PYTHONPATH=.</code></strong><strong>?</strong> The agents in this codelab import each other using fully-qualified paths like <code>from agents.topic_research_agent.agent import ...</code>. For Python to resolve <code>agents</code> as a package, <code>starter/</code> must be on <code>sys.path</code>. <code>PYTHONPATH=.</code> adds the current directory (<code>starter/</code>) to <code>sys.path</code> before ADK starts. Without it you would get <code>ModuleNotFoundError: No module named 'agents'</code>.</p>
+</aside>
 <p>Then open it in your browser via <strong>Web Preview</strong>:</p>
 <ol type="1">
 <li>Click the <strong>Web Preview</strong> button (top-right of the Cloud Shell toolbar)</li>
@@ -372,9 +374,7 @@ topic_research_agent = Agent(
 <pre><code language="language-text" class="language-text">&#34;10 Sustainable Packaging Innovations Winning Over Eco-Conscious Millennials in 2025&#34;
 </code></pre>
 <p>In the <strong>State</strong> tab, you&#39;ll see <code>blog_topic</code> appear with that value. In the <strong>Events</strong> panel, click any event to inspect the exact model request and response.</p>
-<p>Press <code>Ctrl+C</code> to stop the server, then return to <code>starter/</code>:</p>
-<pre><code language="language-bash" class="language-bash">cd ..
-</code></pre>
+<p>Press <code>Ctrl+C</code> to stop the server.</p>
 
 
       </google-codelab-step>
@@ -468,7 +468,7 @@ print(calculate_readability_score(&#39;The cat sat on the mat. It was a good day
 <h2 is-upgraded>See the agent use the tools</h2>
 <p>The unit test above calls the functions directly. Now run the actual agent so you can see the LLM decide <em>when</em> to call each tool and what to do with the results.</p>
 <p>Start the ADK web interface:</p>
-<pre><code language="language-bash" class="language-bash">cd agents &amp;&amp; adk web --port 8080 --reload_agents
+<pre><code language="language-bash" class="language-bash">PYTHONPATH=. adk web agents --port 8080
 </code></pre>
 <p>Select <code>content_analyzer_agent</code> from the dropdown, then send:</p>
 <pre><code language="language-text" class="language-text">Analyze this text: &#34;Artificial intelligence is transforming the way we work and live. Machine learning models can now write code, generate images, and hold conversations. These tools are becoming essential for developers and businesses alike.&#34;
@@ -484,9 +484,7 @@ print(calculate_readability_score(&#39;The cat sat on the mat. It was a good day
 Readability: score 48.3 (Standard / 10th grade)
 Hashtags: #machinelearning #artificialintelligence #tools #developers #businesses
 </code></pre>
-<p>Press <code>Ctrl+C</code> to stop the server, then return to the starter directory:</p>
-<pre><code language="language-bash" class="language-bash">cd ..
-</code></pre>
+<p>Press <code>Ctrl+C</code> to stop the server.</p>
 <p>You now have all the tools your agents will use. The next question is: how do agents work <em>together</em>? Before building the multi-step pipeline, you need to understand the two ways ADK lets agents delegate work to each other.</p>
 
 
@@ -721,7 +719,7 @@ coordinator/orchestrator
 <pre><code language="language-python" class="language-python">root_agent = research_and_draft_workflow
 </code></pre>
 <h2 is-upgraded>Test the sequential workflow</h2>
-<pre><code language="language-bash" class="language-bash">cd agents &amp;&amp; adk web --port 8080 --reload_agents
+<pre><code language="language-bash" class="language-bash">PYTHONPATH=. adk web agents --port 8080
 </code></pre>
 <p>Select <code>orchestrator_agent</code> from the dropdown, then enter the prompt:</p>
 <pre><code language="language-text" class="language-text">Write a blog about sustainable packaging for eco-conscious millennials
@@ -736,9 +734,7 @@ current_content → &#34;# 10 Sustainable Packaging Innovations...\n\n...&#34;
 </aside>
 <aside class="special"><p><strong>Pattern in practice: </strong><code>research_and_draft_workflow</code> is a classic <strong>workflow-driven</strong> pipeline - topic research <em>always</em> runs before drafting, with no LLM making that routing decision. This is exactly the &#34;deterministic steps → Sequential&#34; case from the architecture decision framework you reviewed earlier.</p>
 </aside>
-<p>Press <code>Ctrl+C</code> to stop the server, then return to <code>starter/</code>:</p>
-<pre><code language="language-bash" class="language-bash">cd ..
-</code></pre>
+<p>Press <code>Ctrl+C</code> to stop the server.</p>
 
 
       </google-codelab-step>
@@ -842,7 +838,7 @@ quality_improvement_loop = LoopAgent(
     sub_agents=[research_and_draft_workflow, quality_improvement_loop],
 )
 </code></pre>
-<p>Run <code>cd agents && adk web --port 8080 --reload_agents</code>, select <code>orchestrator_agent</code> from the dropdown, and enter the prompt:</p>
+<p>Run <code>PYTHONPATH=. adk web agents --port 8080</code>, select <code>orchestrator_agent</code> from the dropdown, and enter the prompt:</p>
 <pre><code language="language-text" class="language-text">Write a blog about sustainable packaging for eco-conscious millennials
 </code></pre>
 <p>In the Events panel you&#39;ll see multiple passes: research → draft → quality check → improve → quality check → (exit or max reached). In the terminal, you&#39;ll see output like:</p>
@@ -856,9 +852,7 @@ quality_improvement_loop = LoopAgent(
 </code></pre>
 <aside class="special"><p><strong>Keep this as </strong><strong><code>root_agent</code></strong><strong> for now.</strong> You&#39;ll replace it with the three-phase pipeline in the next step.</p>
 </aside>
-<p>Press <code>Ctrl+C</code> to stop the server, then return to <code>starter/</code>:</p>
-<pre><code language="language-bash" class="language-bash">cd ..
-</code></pre>
+<p>Press <code>Ctrl+C</code> to stop the server.</p>
 
 
       </google-codelab-step>
@@ -969,7 +963,7 @@ parallel_content_creation = ParallelAgent(
     sub_agents=[research_and_draft_workflow, quality_improvement_loop, parallel_content_creation],
 )
 </code></pre>
-<p>Run <code>cd agents && adk web --port 8080 --reload_agents</code>, select <code>orchestrator_agent</code> from the dropdown, and enter the prompt:</p>
+<p>Run <code>PYTHONPATH=. adk web agents --port 8080</code>, select <code>orchestrator_agent</code> from the dropdown, and enter the prompt:</p>
 <pre><code language="language-text" class="language-text">Write a blog about sustainable packaging for eco-conscious millennials
 </code></pre>
 <p>All four keys should appear in the State tab simultaneously after the research → draft → quality loop completes:</p>
@@ -980,9 +974,7 @@ seo_metadata       → &#34;**Meta Title:** ...&#34;
 </code></pre>
 <aside class="special"><p><strong>Next step:</strong> You&#39;ll replace this with <code>full_content_workflow</code> in the next section - no need to revert.</p>
 </aside>
-<p>Press <code>Ctrl+C</code> to stop the server, then return to <code>starter/</code>:</p>
-<pre><code language="language-bash" class="language-bash">cd ..
-</code></pre>
+<p>Press <code>Ctrl+C</code> to stop the server.</p>
 
 
       </google-codelab-step>
@@ -1100,7 +1092,7 @@ root_agent = master_orchestrator_agent
 <aside class="special"><p><strong>sub_agents vs AgentTool:</strong> Using <code>sub_agents=</code> means inner agent events propagate to the <code>Runner</code> and are visible externally (needed for the FastAPI SSE backend to detect which channel agent produced which output). Using <code>AgentTool</code> wraps the agent as an opaque tool call - inner events are hidden. See the <strong>Agent Teams: sub_agents vs AgentTool</strong> section for the full trade-off discussion.</p>
 </aside>
 <h2 is-upgraded>Test routing</h2>
-<pre><code language="language-bash" class="language-bash">cd agents &amp;&amp; adk web --port 8080 --reload_agents
+<pre><code language="language-bash" class="language-bash">PYTHONPATH=. adk web agents --port 8080
 </code></pre>
 <p>Select <code>master_orchestrator_agent</code> from the dropdown.</p>
 <p><strong>Test the analyzer route:</strong></p>
@@ -1115,9 +1107,7 @@ Hashtags: #ArtificialIntelligence #BusinessTransformation #AI #Technology #Innov
 <pre><code language="language-text" class="language-text">Create content about sustainable packaging for eco-conscious millennials, tone: inspiring
 </code></pre>
 <p>You should see it route to <code>full_content_workflow</code> and run the full three-phase pipeline. All four content keys will appear in the State tab when complete.</p>
-<p>Press <code>Ctrl+C</code> to stop the server, then return to <code>starter/</code>:</p>
-<pre><code language="language-bash" class="language-bash">cd ..
-</code></pre>
+<p>Press <code>Ctrl+C</code> to stop the server.</p>
 
 
       </google-codelab-step>
@@ -1233,7 +1223,7 @@ def after_model_callback(
     return None  # Use the model response as-is
 </code></pre>
 <h2 is-upgraded>Test the guardrail</h2>
-<pre><code language="language-bash" class="language-bash">cd agents &amp;&amp; adk web --port 8080 --reload_agents
+<pre><code language="language-bash" class="language-bash">PYTHONPATH=. adk web agents --port 8080
 </code></pre>
 <p>Select <code>master_orchestrator_agent</code> from the dropdown, then enter:</p>
 <pre><code language="language-text" class="language-text">Create content about violence and illegal activities
@@ -1244,9 +1234,7 @@ def after_model_callback(
 ──────────────────────────────────────────────────
   🛡️ GUARDRAIL: Blocked request containing &#39;violence&#39;
 </code></pre>
-<p>Press <code>Ctrl+C</code> to stop the server, then return to <code>starter/</code>:</p>
-<pre><code language="language-bash" class="language-bash">cd ..
-</code></pre>
+<p>Press <code>Ctrl+C</code> to stop the server.</p>
 
 
       </google-codelab-step>
@@ -1339,15 +1327,13 @@ blog_post_writer_agent = Agent(
 <pre><code language="language-text" class="language-text">After writing the blog post, save it as an artifact with filename &#39;blog_post.md&#39;.
 </code></pre>
 <h2 is-upgraded>Try it out</h2>
-<pre><code language="language-bash" class="language-bash">cd agents &amp;&amp; adk web --port 8080 --reload_agents
+<pre><code language="language-bash" class="language-bash">PYTHONPATH=. adk web agents --port 8080
 </code></pre>
 <p>Select <code>master_orchestrator_agent</code> from the dropdown, then enter:</p>
 <pre><code language="language-text" class="language-text">Create content about remote work productivity and save the blog post as an artifact called blog_post.md
 </code></pre>
 <p>After the agent responds, click the <strong>Artifacts</strong> tab in the ADK Dev UI — you should see <code>blog_post.md</code> listed with version <code>0</code>.</p>
-<p>Press <code>Ctrl+C</code> to stop the server, then return to <code>starter/</code>:</p>
-<pre><code language="language-bash" class="language-bash">cd ..
-</code></pre>
+<p>Press <code>Ctrl+C</code> to stop the server.</p>
 <h2 is-upgraded>Cross-session artifacts</h2>
 <p>By default, artifacts are scoped to the current session. Prefix the filename with <code>user:</code> to make an artifact available across all sessions for the same user:</p>
 <pre><code language="language-python" class="language-python"># Session-scoped (default)

@@ -1,3 +1,4 @@
-from .orchestrator_agent.agent import root_agent
-
-__all__ = ["root_agent"]
+# Package marker — do not add imports here.
+# Eager imports trigger a circular load:
+#   orchestrator_agent.agent → agents → agents.orchestrator_agent.agent (second load)
+# deploy.py imports root_agent directly from agents.orchestrator_agent.agent.
