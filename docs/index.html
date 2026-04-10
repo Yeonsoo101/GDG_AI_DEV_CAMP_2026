@@ -465,6 +465,27 @@ print(calculate_readability_score(&#39;The cat sat on the mat. It was a good day
 <pre><code language="language-text" class="language-text">6
 {&#39;score&#39;: 116.15, &#39;grade&#39;: &#39;Very Easy&#39;, &#39;meets_threshold&#39;: True}
 </code></pre>
+<h2 is-upgraded>Wire the tools into the agent</h2>
+<p>Now that all three tools are complete, open the agent file and fill in the instruction and tool list:</p>
+<pre><code language="language-bash" class="language-bash">cloudshell edit agents/content_analyzer_agent/agent.py
+</code></pre>
+<p>Replace the two TODO blocks with:</p>
+<pre><code language="language-python" class="language-python">    instruction=&#34;&#34;&#34;
+    You are a content analysis expert. Analyze the provided text.
+
+    Use your tools to:
+    1. Count words
+    2. Calculate readability
+    3. Generate 5 hashtags
+
+    Provide a clear analysis report.
+    &#34;&#34;&#34;,
+    tools=[
+        FunctionTool(count_words),
+        FunctionTool(calculate_readability_score),
+        FunctionTool(generate_hashtags),
+    ],
+</code></pre>
 <h2 is-upgraded>See the agent use the tools</h2>
 <p>The unit test above calls the functions directly. Now run the actual agent so you can see the LLM decide <em>when</em> to call each tool and what to do with the results.</p>
 <p>Start the ADK web interface:</p>
@@ -1024,38 +1045,9 @@ print([a.name for a in full_content_workflow.sub_agents])
       <google-codelab-step label="The Master Orchestrator" duration="0">
         <p>You now have a complete three-phase content pipeline. But users don&#39;t always want to create content - sometimes they want to analyze existing text. Rather than exposing two separate entry points, you&#39;ll wrap everything behind a single orchestrator that reads the user&#39;s intent and routes accordingly.</p>
 <p>This is the <strong>Coordinator</strong> pattern from the architecture framework: one LLM-Driven agent at the boundary, two Workflow-Driven agents behind it. The orchestrator decides; the specialists execute.</p>
+<p class="image-container"><img alt="Full multi-agent system — master orchestrator routing to full_content_workflow and content_analyzer_agent" src="img/9ad048e29ea815b0.png"></p>
 <h2 is-upgraded>Content Analyzer Agent</h2>
-<p>Open the <code>content_analyzer_agent</code> file:</p>
-<pre><code language="language-bash" class="language-bash">cloudshell edit agents/content_analyzer_agent/agent.py
-</code></pre>
-<p>Fill it in with:</p>
-<pre><code language="language-python" class="language-python"># content_analyzer_agent/agent.py
-from google.adk.agents import Agent
-from google.adk.tools import FunctionTool
-from .tools import count_words, calculate_readability_score, generate_hashtags
-
-MODEL_NAME = &#34;gemini-2.5-flash&#34;
-
-content_analyzer_agent = Agent(
-    name=&#34;content_analyzer_agent&#34;,
-    model=MODEL_NAME,
-    instruction=&#34;&#34;&#34;
-    You are a content analysis expert. Analyze the provided text.
-
-    Use your tools to:
-    1. Count words
-    2. Calculate readability
-    3. Generate 5 hashtags
-
-    Provide a clear analysis report.
-    &#34;&#34;&#34;,
-    tools=[
-        FunctionTool(count_words),
-        FunctionTool(calculate_readability_score),
-        FunctionTool(generate_hashtags),
-    ],
-)
-</code></pre>
+<p><code>content_analyzer_agent</code> is already complete — you built and tested it in <strong>section 5</strong>. It has all three tools wired in (<code>count_words</code>, <code>calculate_readability_score</code>, <code>generate_hashtags</code>) and its own <code>root_agent</code>. Here you simply add it as a sub-agent of the master orchestrator.</p>
 <h2 is-upgraded>Fill in the master orchestrator</h2>
 <pre><code language="language-python" class="language-python"># agents/orchestrator_agent/agent.py
 
