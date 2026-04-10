@@ -151,6 +151,8 @@
 │  • Pre-authenticated with your Google account        │
 └──────────────────────────────────────────────────────┘
 </code></pre>
+<aside class="special"><p><strong><code>cloudshell edit</code></strong><strong> path tip: </strong><code>cloudshell edit</code> resolves paths relative to your <strong>current terminal directory</strong>. All <code>cloudshell edit</code> commands in this codelab use paths starting with <code>workshop/codelab/starter/</code>, which means they must be run from your home directory (<code>~</code>). If your terminal is inside the project (e.g. <code>~/workshop/codelab/starter</code>), first run <code>cd ~</code> before running a <code>cloudshell edit</code> command.</p>
+</aside>
 <aside class="warning"><p><strong>Note:</strong> If Cloud Shell goes idle for 20 minutes it will disconnect. If this happens, reconnect and run <code>cd ~/workshop/codelab/starter</code> to return to the working directory.</p>
 </aside>
 <h2 is-upgraded>Clone the repository</h2>
@@ -207,9 +209,11 @@ source .venv/bin/activate
     cloudresourcemanager.googleapis.com
 </code></pre>
 <p>This takes about 2 minutes. You&#39;ll see <code>Operation finished successfully</code> when done.</p>
-<p>Copy the example <code>.env</code> file and open it in the Cloud Shell editor:</p>
+<p>Copy the example <code>.env</code> file:</p>
 <pre><code language="language-bash" class="language-bash">cp .env.example .env
-cloudshell edit workshop/codelab/starter/.env
+</code></pre>
+<p>Then open it in the Cloud Shell editor (run from <code>~</code>):</p>
+<pre><code language="language-bash" class="language-bash">cd ~ &amp;&amp; cd ~ &amp;&amp; cloudshell edit workshop/codelab/starter/.env
 </code></pre>
 <p>This opens the <code>.env</code> file in the Cloud Shell code editor panel.</p>
 <p>Fill in your project details - replace <code>your-project-id</code> with the value from the previous step:</p>
@@ -300,7 +304,7 @@ Your code / adk web UI    ← reads events, displays the result
     
       <google-codelab-step label="Your First Agent: Topic Research" duration="0">
         <p>Open the <code>topic_research_agent</code> file:</p>
-<pre><code language="language-bash" class="language-bash">cloudshell edit workshop/codelab/starter/agents/topic_research_agent/agent.py
+<pre><code language="language-bash" class="language-bash">cd ~ &amp;&amp; cloudshell edit workshop/codelab/starter/agents/topic_research_agent/agent.py
 </code></pre>
 <h2 is-upgraded>The Agent constructor</h2>
 <p>Every ADK agent is defined with the <code>Agent</code> class. The key parameters:</p>
@@ -379,9 +383,9 @@ topic_research_agent = Agent(
     
       <google-codelab-step label="Building Custom Tools" duration="0">
         <p>Each agent that uses custom tools has its own <code>tools.py</code> inside its package. Open them in Cloud Shell Editor:</p>
-<pre><code language="language-bash" class="language-bash">cloudshell edit workshop/codelab/starter/agents/content_analyzer_agent/tools.py
-cloudshell edit workshop/codelab/starter/agents/quality_checker_agent/tools.py
-cloudshell edit workshop/codelab/starter/agents/content_improver_agent/tools.py
+<pre><code language="language-bash" class="language-bash">cd ~ &amp;&amp; cloudshell edit workshop/codelab/starter/agents/content_analyzer_agent/tools.py
+cd ~ &amp;&amp; cloudshell edit workshop/codelab/starter/agents/quality_checker_agent/tools.py
+cd ~ &amp;&amp; cloudshell edit workshop/codelab/starter/agents/content_improver_agent/tools.py
 </code></pre>
 <p>The tools are already implemented - your job in this step is to read and understand them before using them in later steps.</p>
 <h2 is-upgraded>How ADK tools work</h2>
@@ -669,7 +673,7 @@ coordinator/orchestrator
 <p class="image-container"><img alt="SequentialAgent — research_and_draft_workflow runs sub-agents one after another" src="img/e0f7d9f2fa987c0e.png"></p>
 <h2 is-upgraded>Fill in the content drafter</h2>
 <p>Before wiring up the workflow, open the <code>content_drafter_agent</code> file:</p>
-<pre><code language="language-bash" class="language-bash">cloudshell edit workshop/codelab/starter/agents/content_drafter_agent/agent.py
+<pre><code language="language-bash" class="language-bash">cd ~ &amp;&amp; cloudshell edit workshop/codelab/starter/agents/content_drafter_agent/agent.py
 </code></pre>
 <p>Replace the <code>TODO: #REPLACE-content-drafter-instruction</code> placeholder with:</p>
 <pre><code language="language-python" class="language-python">    You are a content writer. Write a blog post: &#123;&#123;blog_topic}}
@@ -685,7 +689,7 @@ coordinator/orchestrator
 </aside>
 <h2 is-upgraded>Fill in the first workflow</h2>
 <p>Open the <code>orchestrator_agent</code> file:</p>
-<pre><code language="language-bash" class="language-bash">cloudshell edit workshop/codelab/starter/agents/orchestrator_agent/agent.py
+<pre><code language="language-bash" class="language-bash">cd ~ &amp;&amp; cloudshell edit workshop/codelab/starter/agents/orchestrator_agent/agent.py
 </code></pre>
 <p>Find the <code># TODO: #REPLACE-research-and-draft-workflow</code> comment and replace it with:</p>
 <pre><code language="language-python" class="language-python">research_and_draft_workflow = SequentialAgent(
@@ -763,7 +767,7 @@ content_drafter_agent
 <p class="image-container"><img alt="LoopAgent — quality_improvement_loop repeats until quality passes or max_iterations reached" src="img/58cc4c7d71da1583.png"></p>
 <h2 is-upgraded>Fill in the quality checker</h2>
 <p>Open the <code>quality_checker_agent</code> file:</p>
-<pre><code language="language-bash" class="language-bash">cloudshell edit workshop/codelab/starter/agents/quality_checker_agent/agent.py
+<pre><code language="language-bash" class="language-bash">cd ~ &amp;&amp; cloudshell edit workshop/codelab/starter/agents/quality_checker_agent/agent.py
 </code></pre>
 <p>Replace the <code>TODO: #REPLACE-quality-checker-instruction</code> placeholder with:</p>
 <pre><code language="language-python" class="language-python">    You are a content quality analyst. Analyze: &#123;&#123;current_content}}
@@ -784,7 +788,7 @@ content_drafter_agent
 </aside>
 <h2 is-upgraded>Fill in the content improver</h2>
 <p>Open the <code>content_improver_agent</code> file:</p>
-<pre><code language="language-bash" class="language-bash">cloudshell edit workshop/codelab/starter/agents/content_improver_agent/agent.py
+<pre><code language="language-bash" class="language-bash">cd ~ &amp;&amp; cloudshell edit workshop/codelab/starter/agents/content_improver_agent/agent.py
 </code></pre>
 <p>Replace the <code>TODO: #REPLACE-content-improver-instruction</code> placeholder with:</p>
 <pre><code language="language-python" class="language-python">    Current content: &#123;&#123;current_content}}
@@ -871,7 +875,7 @@ quality_improvement_loop = LoopAgent(
 <h2 is-upgraded>Fill in all four content agents</h2>
 <p>For each agent below, open the file and replace only the <code>TODO</code> instruction placeholder.</p>
 <p><strong>Blog Post Writer:</strong></p>
-<pre><code language="language-bash" class="language-bash">cloudshell edit workshop/codelab/starter/agents/blog_post_writer_agent/agent.py
+<pre><code language="language-bash" class="language-bash">cd ~ &amp;&amp; cloudshell edit workshop/codelab/starter/agents/blog_post_writer_agent/agent.py
 </code></pre>
 <p>Replace <code>TODO: #REPLACE-blog-post-writer-instruction</code> with:</p>
 <pre><code language="language-python" class="language-python">    You are a professional blog writer. Create the final polished blog post from: &#123;&#123;current_content}}
@@ -885,7 +889,7 @@ quality_improvement_loop = LoopAgent(
     Output only the final blog post in markdown.
 </code></pre>
 <p><strong>Social Media Creator:</strong></p>
-<pre><code language="language-bash" class="language-bash">cloudshell edit workshop/codelab/starter/agents/social_media_creator_agent/agent.py
+<pre><code language="language-bash" class="language-bash">cd ~ &amp;&amp; cloudshell edit workshop/codelab/starter/agents/social_media_creator_agent/agent.py
 </code></pre>
 <p>Replace <code>TODO: #REPLACE-social-media-creator-instruction</code> with:</p>
 <pre><code language="language-python" class="language-python">    You are a social media specialist. Create posts from: &#123;&#123;current_content}}
@@ -898,7 +902,7 @@ quality_improvement_loop = LoopAgent(
     Format with clear headers for each platform.
 </code></pre>
 <p><strong>Email Newsletter Writer:</strong></p>
-<pre><code language="language-bash" class="language-bash">cloudshell edit workshop/codelab/starter/agents/email_newsletter_writer_agent/agent.py
+<pre><code language="language-bash" class="language-bash">cd ~ &amp;&amp; cloudshell edit workshop/codelab/starter/agents/email_newsletter_writer_agent/agent.py
 </code></pre>
 <p>Replace <code>TODO: #REPLACE-email-newsletter-instruction</code> with:</p>
 <pre><code language="language-python" class="language-python">    You are an email marketing specialist. Create a newsletter from: &#123;&#123;current_content}}
@@ -911,7 +915,7 @@ quality_improvement_loop = LoopAgent(
     Format with clear sections.
 </code></pre>
 <p><strong>SEO Metadata Agent:</strong></p>
-<pre><code language="language-bash" class="language-bash">cloudshell edit workshop/codelab/starter/agents/seo_metadata_agent/agent.py
+<pre><code language="language-bash" class="language-bash">cd ~ &amp;&amp; cloudshell edit workshop/codelab/starter/agents/seo_metadata_agent/agent.py
 </code></pre>
 <p>Replace <code>TODO: #REPLACE-seo-metadata-instruction</code> with:</p>
 <pre><code language="language-python" class="language-python">    You are an SEO specialist. Generate metadata based on: &#123;&#123;current_content}}
@@ -1010,7 +1014,7 @@ print([a.name for a in full_content_workflow.sub_agents])
 <p>This is the <strong>Coordinator</strong> pattern from the architecture framework: one LLM-Driven agent at the boundary, two Workflow-Driven agents behind it. The orchestrator decides; the specialists execute.</p>
 <h2 is-upgraded>Content Analyzer Agent</h2>
 <p>Open the <code>content_analyzer_agent</code> file:</p>
-<pre><code language="language-bash" class="language-bash">cloudshell edit workshop/codelab/starter/agents/content_analyzer_agent/agent.py
+<pre><code language="language-bash" class="language-bash">cd ~ &amp;&amp; cloudshell edit workshop/codelab/starter/agents/content_analyzer_agent/agent.py
 </code></pre>
 <p>Fill it in with:</p>
 <pre><code language="language-python" class="language-python"># content_analyzer_agent/agent.py
@@ -1100,7 +1104,7 @@ Hashtags: #ArtificialIntelligence #BusinessTransformation #AI #Technology #Innov
     
       <google-codelab-step label="Callbacks: Observability &amp; Safety (Optional)" duration="0">
         <p>Callbacks let you intercept agent execution at six points without modifying agent logic. Open the <code>orchestrator_agent</code> callbacks file:</p>
-<pre><code language="language-bash" class="language-bash">cloudshell edit workshop/codelab/starter/agents/orchestrator_agent/callbacks.py
+<pre><code language="language-bash" class="language-bash">cd ~ &amp;&amp; cloudshell edit workshop/codelab/starter/agents/orchestrator_agent/callbacks.py
 </code></pre>
 <p>The imports, type annotations, <code>_extract_session_id</code> helper, and <code>BLOCKED_TOPICS</code> list are already provided - fill in the four function bodies.</p>
 <h2 is-upgraded>The six callback hooks</h2>
@@ -1271,7 +1275,7 @@ def after_model_callback(
 <li><strong>Persist files across sessions</strong> by prefixing the filename with <code>user:</code> (e.g., <code>user:blog_post.md</code>)</li>
 </ul>
 <h2 is-upgraded>Explore the artifact tools</h2>
-<pre><code language="language-bash" class="language-bash">cloudshell edit workshop/codelab/starter/agents/artifacts.py
+<pre><code language="language-bash" class="language-bash">cd ~ &amp;&amp; cloudshell edit workshop/codelab/starter/agents/artifacts.py
 </code></pre>
 <p>It defines three tools:</p>
 <pre><code language="language-python" class="language-python">async def save_content_artifact(tool_context, filename, content) -&gt; dict:
@@ -1518,7 +1522,7 @@ Test complete.
 <p>So far you&#39;ve run the agent locally via <code>adk web</code>. In this step you&#39;ll deploy a production web application: a React frontend served by a FastAPI backend, both packaged in a single Docker container on Cloud Run.</p>
 <h2 is-upgraded>How the backend connects to Agent Engine</h2>
 <p>Open the backend server file to explore it:</p>
-<pre><code language="language-bash" class="language-bash">cloudshell edit workshop/codelab/starter/backend/api_server.py
+<pre><code language="language-bash" class="language-bash">cd ~ &amp;&amp; cloudshell edit workshop/codelab/starter/backend/api_server.py
 </code></pre>
 <p>The key section:</p>
 <pre><code language="language-python" class="language-python">from vertexai import agent_engines
@@ -1563,7 +1567,7 @@ async def create_content(request: ContentRequest):
 <p>The React frontend subscribes to the SSE stream and renders each channel&#39;s content as it arrives - giving users real-time feedback as each content format completes.</p>
 <h2 is-upgraded>The Docker multi-stage build</h2>
 <p>Open the Dockerfile at the project root:</p>
-<pre><code language="language-bash" class="language-bash">cloudshell edit workshop/codelab/starter/Dockerfile
+<pre><code language="language-bash" class="language-bash">cd ~ &amp;&amp; cloudshell edit workshop/codelab/starter/Dockerfile
 </code></pre>
 <p>It uses a two-stage build:</p>
 <pre><code language="language-dockerfile" class="language-dockerfile"># Stage 1: Build React frontend
