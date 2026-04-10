@@ -26,10 +26,9 @@ import vertexai
 from vertexai import agent_engines
 from google.adk.plugins.logging_plugin import LoggingPlugin
 
-# Add project root and agents/ to Python path
+# Add project root to Python path so agents/ package is importable
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
-sys.path.insert(0, str(project_root / "agents"))
 
 from agents.orchestrator_agent.agent import root_agent
 

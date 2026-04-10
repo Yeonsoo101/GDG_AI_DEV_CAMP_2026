@@ -36,7 +36,7 @@
           <hr style="border:none;border-top:1px solid #dadce0;margin:0 0 20px 0;">
           <div style="display:flex;align-items:center;margin-bottom:16px;color:#5f6368;font-size:14px;">
             <svg style="margin-right:16px;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 24 24" fill="#5f6368"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
-            <span>Last updated Apr 09, 2026</span>
+            <span>Last updated Apr 10, 2026</span>
           </div>
           <div style="display:flex;align-items:center;color:#5f6368;font-size:14px;">
             <div style="margin-right:16px;flex-shrink:0;width:20px;height:20px;border-radius:50%;background:#bdc1c6;display:flex;align-items:center;justify-content:center;overflow:hidden;">
@@ -151,16 +151,16 @@
 │  • Pre-authenticated with your Google account        │
 └──────────────────────────────────────────────────────┘
 </code></pre>
-<aside class="warning"><p><strong>Note:</strong> If Cloud Shell goes idle for 20 minutes it will disconnect. If this happens, reconnect and run <code>cd ~/google-adk-multi-agent-design-consideration-workshop/codelab/starter</code> to return to the working directory.</p>
+<aside class="warning"><p><strong>Note:</strong> If Cloud Shell goes idle for 20 minutes it will disconnect. If this happens, reconnect and run <code>cd ~/workshop/codelab/starter</code> to return to the working directory.</p>
 </aside>
 <h2 is-upgraded>Clone the repository</h2>
 <p>In the terminal, clone the repository and navigate to the starter directory:</p>
-<pre><code language="language-bash" class="language-bash">git clone -b feature/per-agent-packages https://github.com/Saoussen-CH/google-adk-multi-agent-design-consideration-workshop.git
-cd google-adk-multi-agent-design-consideration-workshop/codelab/starter
+<pre><code language="language-bash" class="language-bash">git clone -b feature/per-agent-packages https://github.com/Saoussen-CH/google-adk-multi-agent-design-consideration-workshop.git workshop
+cd workshop/codelab/starter
 </code></pre>
 <p>Key implementation sections are replaced with <code># TODO: #REPLACE-...</code> comments - you&#39;ll fill these in step by step.</p>
 <p>👀 <strong>Verify</strong> - your terminal prompt should now show the <code>starter</code> directory:</p>
-<pre><code language="language-text" class="language-text">...google-adk-multi-agent-design-consideration-workshop/codelab/starter$
+<pre><code language="language-text" class="language-text">...workshop/codelab/starter$
 </code></pre>
 <p>You&#39;re in the right folder.</p>
 <h2 is-upgraded>Create and activate a virtual environment</h2>
@@ -209,7 +209,7 @@ source .venv/bin/activate
 <p>This takes about 2 minutes. You&#39;ll see <code>Operation finished successfully</code> when done.</p>
 <p>Copy the example <code>.env</code> file and open it in the Cloud Shell editor:</p>
 <pre><code language="language-bash" class="language-bash">cp .env.example .env
-cloudshell edit .env
+cloudshell edit workshop/codelab/starter/.env
 </code></pre>
 <p>This opens the <code>.env</code> file in the Cloud Shell code editor panel.</p>
 <p>Fill in your project details - replace <code>your-project-id</code> with the value from the previous step:</p>
@@ -299,8 +299,8 @@ Your code / adk web UI    ← reads events, displays the result
       </google-codelab-step>
     
       <google-codelab-step label="Your First Agent: Topic Research" duration="0">
-        <p>Open the agent file in Cloud Shell Editor:</p>
-<pre><code language="language-bash" class="language-bash">cloudshell edit agents/topic_research_agent/agent.py
+        <p>Open the <code>topic_research_agent</code> file:</p>
+<pre><code language="language-bash" class="language-bash">cloudshell edit workshop/codelab/starter/agents/topic_research_agent/agent.py
 </code></pre>
 <h2 is-upgraded>The Agent constructor</h2>
 <p>Every ADK agent is defined with the <code>Agent</code> class. The key parameters:</p>
@@ -379,9 +379,9 @@ topic_research_agent = Agent(
     
       <google-codelab-step label="Building Custom Tools" duration="0">
         <p>Each agent that uses custom tools has its own <code>tools.py</code> inside its package. Open them in Cloud Shell Editor:</p>
-<pre><code language="language-bash" class="language-bash">cloudshell edit agents/content_analyzer_agent/tools.py
-cloudshell edit agents/quality_checker_agent/tools.py
-cloudshell edit agents/content_improver_agent/tools.py
+<pre><code language="language-bash" class="language-bash">cloudshell edit workshop/codelab/starter/agents/content_analyzer_agent/tools.py
+cloudshell edit workshop/codelab/starter/agents/quality_checker_agent/tools.py
+cloudshell edit workshop/codelab/starter/agents/content_improver_agent/tools.py
 </code></pre>
 <p>The tools are already implemented - your job in this step is to read and understand them before using them in later steps.</p>
 <h2 is-upgraded>How ADK tools work</h2>
@@ -668,8 +668,8 @@ coordinator/orchestrator
 </code></pre>
 <p class="image-container"><img alt="SequentialAgent — research_and_draft_workflow runs sub-agents one after another" src="img/e0f7d9f2fa987c0e.png"></p>
 <h2 is-upgraded>Fill in the content drafter</h2>
-<p>Before wiring up the workflow, open the content drafter agent:</p>
-<pre><code language="language-bash" class="language-bash">cloudshell edit agents/content_drafter_agent/agent.py
+<p>Before wiring up the workflow, open the <code>content_drafter_agent</code> file:</p>
+<pre><code language="language-bash" class="language-bash">cloudshell edit workshop/codelab/starter/agents/content_drafter_agent/agent.py
 </code></pre>
 <p>Replace the <code>TODO: #REPLACE-content-drafter-instruction</code> placeholder with:</p>
 <pre><code language="language-python" class="language-python">    You are a content writer. Write a blog post: &#123;&#123;blog_topic}}
@@ -684,8 +684,8 @@ coordinator/orchestrator
 <aside class="special"><p>The <code>&#123;&#123;blog_topic}}</code> syntax is ADK&#39;s key templating - before calling the model, ADK substitutes it with the value of <code>session.state["blog_topic"]</code> written by <code>topic_research_agent</code>. You&#39;ll learn more about this in the <strong>Session State</strong> section.</p>
 </aside>
 <h2 is-upgraded>Fill in the first workflow</h2>
-<p>Open the main agent file:</p>
-<pre><code language="language-bash" class="language-bash">cloudshell edit agents/orchestrator_agent/agent.py
+<p>Open the <code>orchestrator_agent</code> file:</p>
+<pre><code language="language-bash" class="language-bash">cloudshell edit workshop/codelab/starter/agents/orchestrator_agent/agent.py
 </code></pre>
 <p>Find the <code># TODO: #REPLACE-research-and-draft-workflow</code> comment and replace it with:</p>
 <pre><code language="language-python" class="language-python">research_and_draft_workflow = SequentialAgent(
@@ -699,7 +699,7 @@ coordinator/orchestrator
 <h2 is-upgraded>Test the sequential workflow</h2>
 <pre><code language="language-bash" class="language-bash">cd agents &amp;&amp; adk web --port 8080 --reload_agents
 </code></pre>
-<p>Enter the prompt:</p>
+<p>Select <code>orchestrator_agent</code> from the dropdown, then enter the prompt:</p>
 <pre><code language="language-text" class="language-text">Write a blog about sustainable packaging for eco-conscious millennials
 </code></pre>
 <p>In the <strong>Events</strong> panel you&#39;ll see <code>topic_research_agent</code> fire first, then <code>content_drafter_agent</code>. In the <strong>State</strong> tab, both keys appear in sequence:</p>
@@ -762,7 +762,8 @@ content_drafter_agent
 </code></pre>
 <p class="image-container"><img alt="LoopAgent — quality_improvement_loop repeats until quality passes or max_iterations reached" src="img/58cc4c7d71da1583.png"></p>
 <h2 is-upgraded>Fill in the quality checker</h2>
-<pre><code language="language-bash" class="language-bash">cloudshell edit agents/quality_checker_agent/agent.py
+<p>Open the <code>quality_checker_agent</code> file:</p>
+<pre><code language="language-bash" class="language-bash">cloudshell edit workshop/codelab/starter/agents/quality_checker_agent/agent.py
 </code></pre>
 <p>Replace the <code>TODO: #REPLACE-quality-checker-instruction</code> placeholder with:</p>
 <pre><code language="language-python" class="language-python">    You are a content quality analyst. Analyze: &#123;&#123;current_content}}
@@ -782,7 +783,8 @@ content_drafter_agent
 <aside class="special"><p><strong>Note on double braces:</strong> The instruction is an f-string, so write <code>&#123;&#123;current_content}}</code> - Python converts double braces to single braces, giving ADK the <code>{current_content}</code> it needs for state substitution.</p>
 </aside>
 <h2 is-upgraded>Fill in the content improver</h2>
-<pre><code language="language-bash" class="language-bash">cloudshell edit agents/content_improver_agent/agent.py
+<p>Open the <code>content_improver_agent</code> file:</p>
+<pre><code language="language-bash" class="language-bash">cloudshell edit workshop/codelab/starter/agents/content_improver_agent/agent.py
 </code></pre>
 <p>Replace the <code>TODO: #REPLACE-content-improver-instruction</code> placeholder with:</p>
 <pre><code language="language-python" class="language-python">    Current content: &#123;&#123;current_content}}
@@ -816,7 +818,7 @@ quality_improvement_loop = LoopAgent(
     sub_agents=[research_and_draft_workflow, quality_improvement_loop],
 )
 </code></pre>
-<p>Run <code>cd agents && adk web --port 8080 --reload_agents</code> and enter the prompt:</p>
+<p>Run <code>cd agents && adk web --port 8080 --reload_agents</code>, select <code>orchestrator_agent</code> from the dropdown, and enter the prompt:</p>
 <pre><code language="language-text" class="language-text">Write a blog about sustainable packaging for eco-conscious millennials
 </code></pre>
 <p>In the Events panel you&#39;ll see multiple passes: research → draft → quality check → improve → quality check → (exit or max reached). In the terminal, you&#39;ll see output like:</p>
@@ -869,7 +871,7 @@ quality_improvement_loop = LoopAgent(
 <h2 is-upgraded>Fill in all four content agents</h2>
 <p>For each agent below, open the file and replace only the <code>TODO</code> instruction placeholder.</p>
 <p><strong>Blog Post Writer:</strong></p>
-<pre><code language="language-bash" class="language-bash">cloudshell edit agents/blog_post_writer_agent/agent.py
+<pre><code language="language-bash" class="language-bash">cloudshell edit workshop/codelab/starter/agents/blog_post_writer_agent/agent.py
 </code></pre>
 <p>Replace <code>TODO: #REPLACE-blog-post-writer-instruction</code> with:</p>
 <pre><code language="language-python" class="language-python">    You are a professional blog writer. Create the final polished blog post from: &#123;&#123;current_content}}
@@ -883,7 +885,7 @@ quality_improvement_loop = LoopAgent(
     Output only the final blog post in markdown.
 </code></pre>
 <p><strong>Social Media Creator:</strong></p>
-<pre><code language="language-bash" class="language-bash">cloudshell edit agents/social_media_creator_agent/agent.py
+<pre><code language="language-bash" class="language-bash">cloudshell edit workshop/codelab/starter/agents/social_media_creator_agent/agent.py
 </code></pre>
 <p>Replace <code>TODO: #REPLACE-social-media-creator-instruction</code> with:</p>
 <pre><code language="language-python" class="language-python">    You are a social media specialist. Create posts from: &#123;&#123;current_content}}
@@ -896,7 +898,7 @@ quality_improvement_loop = LoopAgent(
     Format with clear headers for each platform.
 </code></pre>
 <p><strong>Email Newsletter Writer:</strong></p>
-<pre><code language="language-bash" class="language-bash">cloudshell edit agents/email_newsletter_writer_agent/agent.py
+<pre><code language="language-bash" class="language-bash">cloudshell edit workshop/codelab/starter/agents/email_newsletter_writer_agent/agent.py
 </code></pre>
 <p>Replace <code>TODO: #REPLACE-email-newsletter-instruction</code> with:</p>
 <pre><code language="language-python" class="language-python">    You are an email marketing specialist. Create a newsletter from: &#123;&#123;current_content}}
@@ -909,7 +911,7 @@ quality_improvement_loop = LoopAgent(
     Format with clear sections.
 </code></pre>
 <p><strong>SEO Metadata Agent:</strong></p>
-<pre><code language="language-bash" class="language-bash">cloudshell edit agents/seo_metadata_agent/agent.py
+<pre><code language="language-bash" class="language-bash">cloudshell edit workshop/codelab/starter/agents/seo_metadata_agent/agent.py
 </code></pre>
 <p>Replace <code>TODO: #REPLACE-seo-metadata-instruction</code> with:</p>
 <pre><code language="language-python" class="language-python">    You are an SEO specialist. Generate metadata based on: &#123;&#123;current_content}}
@@ -943,7 +945,7 @@ parallel_content_creation = ParallelAgent(
     sub_agents=[research_and_draft_workflow, quality_improvement_loop, parallel_content_creation],
 )
 </code></pre>
-<p>Run <code>cd agents && adk web --port 8080 --reload_agents</code> and enter the prompt:</p>
+<p>Run <code>cd agents && adk web --port 8080 --reload_agents</code>, select <code>orchestrator_agent</code> from the dropdown, and enter the prompt:</p>
 <pre><code language="language-text" class="language-text">Write a blog about sustainable packaging for eco-conscious millennials
 </code></pre>
 <p>All four keys should appear in the State tab simultaneously after the research → draft → quality loop completes:</p>
@@ -1007,8 +1009,8 @@ print([a.name for a in full_content_workflow.sub_agents])
         <p>You now have a complete three-phase content pipeline. But users don&#39;t always want to create content - sometimes they want to analyze existing text. Rather than exposing two separate entry points, you&#39;ll wrap everything behind a single orchestrator that reads the user&#39;s intent and routes accordingly.</p>
 <p>This is the <strong>Coordinator</strong> pattern from the architecture framework: one LLM-Driven agent at the boundary, two Workflow-Driven agents behind it. The orchestrator decides; the specialists execute.</p>
 <h2 is-upgraded>Content Analyzer Agent</h2>
-<p>First, open the content analyzer file:</p>
-<pre><code language="language-bash" class="language-bash">cloudshell edit agents/content_analyzer_agent/agent.py
+<p>Open the <code>content_analyzer_agent</code> file:</p>
+<pre><code language="language-bash" class="language-bash">cloudshell edit workshop/codelab/starter/agents/content_analyzer_agent/agent.py
 </code></pre>
 <p>Fill it in with:</p>
 <pre><code language="language-python" class="language-python"># content_analyzer_agent/agent.py
@@ -1076,6 +1078,7 @@ root_agent = master_orchestrator_agent
 <h2 is-upgraded>Test routing</h2>
 <pre><code language="language-bash" class="language-bash">cd agents &amp;&amp; adk web --port 8080 --reload_agents
 </code></pre>
+<p>Select <code>master_orchestrator_agent</code> from the dropdown.</p>
 <p><strong>Test the analyzer route:</strong></p>
 <pre><code language="language-text" class="language-text">Analyze this text: Artificial intelligence is transforming the way businesses operate.
 </code></pre>
@@ -1096,8 +1099,8 @@ Hashtags: #ArtificialIntelligence #BusinessTransformation #AI #Technology #Innov
       </google-codelab-step>
     
       <google-codelab-step label="Callbacks: Observability &amp; Safety (Optional)" duration="0">
-        <p>Callbacks let you intercept agent execution at six points without modifying agent logic. Open the callbacks file:</p>
-<pre><code language="language-bash" class="language-bash">cloudshell edit agents/orchestrator_agent/callbacks.py
+        <p>Callbacks let you intercept agent execution at six points without modifying agent logic. Open the <code>orchestrator_agent</code> callbacks file:</p>
+<pre><code language="language-bash" class="language-bash">cloudshell edit workshop/codelab/starter/agents/orchestrator_agent/callbacks.py
 </code></pre>
 <p>The imports, type annotations, <code>_extract_session_id</code> helper, and <code>BLOCKED_TOPICS</code> list are already provided - fill in the four function bodies.</p>
 <h2 is-upgraded>The six callback hooks</h2>
@@ -1208,7 +1211,7 @@ def after_model_callback(
 <h2 is-upgraded>Test the guardrail</h2>
 <pre><code language="language-bash" class="language-bash">cd agents &amp;&amp; adk web --port 8080 --reload_agents
 </code></pre>
-<p>Enter:</p>
+<p>Select <code>master_orchestrator_agent</code> from the dropdown, then enter:</p>
 <pre><code language="language-text" class="language-text">Create content about violence and illegal activities
 </code></pre>
 <p>You should see this in your terminal and the agent refuses without ever calling the model:</p>
@@ -1268,7 +1271,7 @@ def after_model_callback(
 <li><strong>Persist files across sessions</strong> by prefixing the filename with <code>user:</code> (e.g., <code>user:blog_post.md</code>)</li>
 </ul>
 <h2 is-upgraded>Explore the artifact tools</h2>
-<pre><code language="language-bash" class="language-bash">cloudshell edit agents/artifacts.py
+<pre><code language="language-bash" class="language-bash">cloudshell edit workshop/codelab/starter/agents/artifacts.py
 </code></pre>
 <p>It defines three tools:</p>
 <pre><code language="language-python" class="language-python">async def save_content_artifact(tool_context, filename, content) -&gt; dict:
@@ -1291,7 +1294,8 @@ async def load_content_artifact(tool_context, filename) -&gt; str:
 <p>Each function uses <code>tool_context</code> (injected by ADK) to call <code>save_artifact</code>, <code>list_artifacts</code>, and <code>load_artifact</code>. The <code>ToolContext</code> provides access to both the artifact service and the current session.</p>
 <h2 is-upgraded>How you&#39;d wire artifacts into an agent</h2>
 <p>To give an agent the ability to save content as a file, add these tools to its <code>tools</code> list:</p>
-<pre><code language="language-python" class="language-python">from artifacts import (
+<pre><code language="language-python" class="language-python">from google.adk.tools import FunctionTool
+from agents.artifacts import (
     save_content_artifact,
     list_content_artifacts,
     load_content_artifact,
@@ -1309,6 +1313,16 @@ blog_post_writer_agent = Agent(
 </code></pre>
 <p>The agent can then be instructed to save its output:</p>
 <pre><code language="language-text" class="language-text">After writing the blog post, save it as an artifact with filename &#39;blog_post.md&#39;.
+</code></pre>
+<h2 is-upgraded>Try it out</h2>
+<pre><code language="language-bash" class="language-bash">cd agents &amp;&amp; adk web --port 8080 --reload_agents
+</code></pre>
+<p>Select <code>master_orchestrator_agent</code> from the dropdown, then enter:</p>
+<pre><code language="language-text" class="language-text">Create content about remote work productivity and save the blog post as an artifact called blog_post.md
+</code></pre>
+<p>After the agent responds, click the <strong>Artifacts</strong> tab in the ADK Dev UI — you should see <code>blog_post.md</code> listed with version <code>0</code>.</p>
+<p>Press <code>Ctrl+C</code> to stop the server, then return to <code>starter/</code>:</p>
+<pre><code language="language-bash" class="language-bash">cd ..
 </code></pre>
 <h2 is-upgraded>Cross-session artifacts</h2>
 <p>By default, artifacts are scoped to the current session. Prefix the filename with <code>user:</code> to make an artifact available across all sessions for the same user:</p>
@@ -1361,24 +1375,25 @@ await tool_context.save_artifact(filename=&#34;user:blog_post.md&#34;, artifact=
 <p>The <strong>write side</strong> is already handled: the <code>after_agent_callback</code> you implemented in the <strong>Callbacks</strong> section calls <code>await memory_service.add_session_to_memory(session)</code> after every agent turn.</p>
 <p>The <strong>read side</strong> is <code>PreloadMemoryTool</code> - ADK automatically invokes it before each turn to inject relevant past sessions into the model&#39;s context. You already wired it into <code>master_orchestrator_agent</code> in the <strong>Master Orchestrator</strong> section, so no code changes are needed here.</p>
 <h2 is-upgraded>Test cross-session memory</h2>
-<p>Run <code>cd agents && adk web --port 8080 --reload_agents</code> and open two separate sessions:</p>
-<p><strong>Session 1:</strong></p>
+<aside class="warning"><p><strong><code>adk web</code></strong><strong> uses </strong><strong><code>InMemorySessionService</code></strong> — sessions are isolated in-process and do not persist when you open a new session or restart the server. Cross-session memory only works when the agent is deployed to <strong>Vertex AI Agent Engine with Memory Bank</strong> enabled.</p>
+</aside>
+<p>To verify memory works, use the deployed agent:</p>
+<pre><code language="language-bash" class="language-bash">python deployment/deploy.py --action test_remote
+</code></pre>
+<p>Run it twice with different topics:</p>
+<p><strong>First run</strong> — session 1:</p>
 <pre><code language="language-text" class="language-text">Create content about Python async programming for backend developers
 </code></pre>
-<p>Close the session (click <strong>+ New Session</strong> in the top right).</p>
-<p><strong>Session 2:</strong></p>
+<p><strong>Second run</strong> — session 2 (new invocation of <code>test_remote</code>):</p>
 <pre><code language="language-text" class="language-text">What blog topics have I asked you to write about before?
 </code></pre>
-<p>The orchestrator should recall the Python async topic from the previous session. You&#39;ll see a response like:</p>
+<p>The orchestrator should recall the Python async topic from the first run:</p>
 <pre><code language="language-text" class="language-text">Based on our previous conversation, you asked me to write about
 &#34;Python async programming for backend developers&#34;. Would you like
 to create more content on that topic or explore something new?
 </code></pre>
-<aside class="special"><p><strong>Production note: </strong><code>InMemoryMemoryService</code> is local and disappears when the process restarts. For production, use Vertex AI Memory Bank by passing <code>memory_bank_resource_name</code> to <code>agent_engines.create()</code>.</p>
+<aside class="special"><p><strong>How it works on Agent Engine:</strong> Memory Bank is a managed vector store. After each turn, <code>after_agent_callback</code> calls <code>memory_service.add_session_to_memory()</code> to write the session. Before each turn, <code>PreloadMemoryTool</code> queries Memory Bank and injects relevant past sessions into the model context automatically.</p>
 </aside>
-<p>Press <code>Ctrl+C</code> to stop the server, then return to <code>starter/</code>:</p>
-<pre><code language="language-bash" class="language-bash">cd ..
-</code></pre>
 
 
       </google-codelab-step>
@@ -1478,6 +1493,21 @@ Streaming response:
 [content streams in chunks]
 Test complete.
 </code></pre>
+<h2 is-upgraded>Test from the Vertex AI Console playground</h2>
+<p>You can also chat with your deployed agent directly from the Google Cloud Console — no code required.</p>
+<ol type="1">
+<li>Open the <a href="https://console.cloud.google.com/vertex-ai/agents/agent-engines" target="_blank">Agent Engine console</a></li>
+<li>Click your deployed agent (<code>content-creation-multiagentsystem</code>)</li>
+<li>Click <strong>Test in playground</strong></li>
+<li>Enter a prompt such as:</li>
+</ol>
+<pre><code language="language-text" class="language-text">Create a complete content package for:
+- Topic: AI tools for freelancers in 2025
+- Target Audience: Independent professionals and solopreneurs
+- Tone: Practical and motivating
+- Keywords: AI freelance, automation, productivity tools
+</code></pre>
+<p>You should see the agent run through the full pipeline — research → draft → quality loop → parallel content creation — and return blog post, social media, email newsletter, and SEO metadata.</p>
 
 
       </google-codelab-step>
@@ -1488,7 +1518,7 @@ Test complete.
 <p>So far you&#39;ve run the agent locally via <code>adk web</code>. In this step you&#39;ll deploy a production web application: a React frontend served by a FastAPI backend, both packaged in a single Docker container on Cloud Run.</p>
 <h2 is-upgraded>How the backend connects to Agent Engine</h2>
 <p>Open the backend server file to explore it:</p>
-<pre><code language="language-bash" class="language-bash">cloudshell edit backend/api_server.py
+<pre><code language="language-bash" class="language-bash">cloudshell edit workshop/codelab/starter/backend/api_server.py
 </code></pre>
 <p>The key section:</p>
 <pre><code language="language-python" class="language-python">from vertexai import agent_engines
@@ -1533,7 +1563,7 @@ async def create_content(request: ContentRequest):
 <p>The React frontend subscribes to the SSE stream and renders each channel&#39;s content as it arrives - giving users real-time feedback as each content format completes.</p>
 <h2 is-upgraded>The Docker multi-stage build</h2>
 <p>Open the Dockerfile at the project root:</p>
-<pre><code language="language-bash" class="language-bash">cloudshell edit Dockerfile
+<pre><code language="language-bash" class="language-bash">cloudshell edit workshop/codelab/starter/Dockerfile
 </code></pre>
 <p>It uses a two-stage build:</p>
 <pre><code language="language-dockerfile" class="language-dockerfile"># Stage 1: Build React frontend
@@ -1583,9 +1613,16 @@ async def serve_frontend():
 <pre><code language="language-text" class="language-text">https://content-studio-abc123-uc.a.run.app
 </code></pre>
 <h2 is-upgraded>Test the full stack</h2>
-<p>Open the URL in your browser. You should see the React UI. Enter a topic and click <strong>Create Content</strong> - results will stream in real time, one channel at a time.</p>
+<p>Open the URL in your browser. You should see the React UI. Fill in the form with:</p>
+<ul>
+<li><strong>Topic:</strong> AI tools for freelancers in 2025</li>
+<li><strong>Target Audience:</strong> Independent professionals and solopreneurs</li>
+<li><strong>Tone:</strong> Practical and motivating</li>
+<li><strong>Keywords:</strong> AI freelance, automation, productivity tools</li>
+</ul>
+<p>Click <strong>Create Content</strong> — all four channels (Blog Post, Social Media, Email Newsletter, SEO Metadata) should stream in and populate in real time.</p>
 <p class="image-container"><img alt="Full-stack app demo - content streaming in real time" src="img/c5f65e37da2c2765.gif"></p>
-<p>Test the health endpoint to confirm the backend is connected:</p>
+<p>Test the health endpoint to confirm the backend is connected to Agent Engine:</p>
 <pre><code language="language-bash" class="language-bash">curl https://your-service-url/health
 </code></pre>
 <p>Expected response:</p>

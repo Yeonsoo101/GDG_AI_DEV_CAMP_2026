@@ -134,7 +134,8 @@ else
         --display-name="Content Creation Studio Service Account" \
         --description="Service account for Content Creation Studio applications" \
         --project=$GOOGLE_CLOUD_PROJECT
-    echo "Service account created!"
+    echo "Service account created! Waiting for propagation..."
+    sleep 10
 fi
 
 echo ""

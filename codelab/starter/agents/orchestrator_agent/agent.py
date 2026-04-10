@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 
-# Ensure environment variables are loaded (especially GOOGLE_API_KEY)
+# Ensure environment variables are loaded
 load_dotenv()
 
 from google.adk.agents import SequentialAgent, LoopAgent, ParallelAgent, Agent
@@ -15,15 +15,15 @@ from .callbacks import (
     before_model_callback,
     after_model_callback,
 )
-from topic_research_agent.agent import topic_research_agent
-from content_drafter_agent.agent import content_drafter_agent
-from quality_checker_agent.agent import quality_checker_agent
-from content_improver_agent.agent import content_improver_agent
-from blog_post_writer_agent.agent import blog_post_writer_agent
-from social_media_creator_agent.agent import social_media_creator_agent
-from email_newsletter_writer_agent.agent import email_newsletter_writer_agent
-from seo_metadata_agent.agent import seo_metadata_agent
-from content_analyzer_agent.agent import content_analyzer_agent
+from agents.topic_research_agent.agent import topic_research_agent
+from agents.content_drafter_agent.agent import content_drafter_agent
+from agents.quality_checker_agent.agent import quality_checker_agent
+from agents.content_improver_agent.agent import content_improver_agent
+from agents.blog_post_writer_agent.agent import blog_post_writer_agent
+from agents.social_media_creator_agent.agent import social_media_creator_agent
+from agents.email_newsletter_writer_agent.agent import email_newsletter_writer_agent
+from agents.seo_metadata_agent.agent import seo_metadata_agent
+from agents.content_analyzer_agent.agent import content_analyzer_agent
 
 
 # --- Step 8: Sequential — Research and Draft ---

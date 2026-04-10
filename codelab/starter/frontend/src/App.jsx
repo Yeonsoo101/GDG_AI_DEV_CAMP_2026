@@ -38,6 +38,7 @@ function App() {
       .then(response => {
         const reader = response.body.getReader()
         const decoder = new TextDecoder()
+        let buffer = ''
 
         const readStream = () => {
           reader.read().then(({ done, value }) => {
@@ -46,8 +47,11 @@ function App() {
               return
             }
 
-            const chunk = decoder.decode(value)
-            const lines = chunk.split('\n')
+            // Buffer across chunks so large JSON payloads (e.g. blog post)
+            // are not split mid-line and silently dropped by JSON.parse
+            buffer += decoder.decode(value, { stream: true })
+            const lines = buffer.split('\n')
+            buffer = lines.pop() // keep any incomplete trailing line
 
             lines.forEach(line => {
               if (line.startsWith('data: ')) {
