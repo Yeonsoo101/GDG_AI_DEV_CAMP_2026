@@ -468,12 +468,18 @@ print(calculate_readability_score(&#39;The cat sat on the mat. It was a good day
 <h2 is-upgraded>See the agent use the tools</h2>
 <p>The unit test above calls the functions directly. Now run the actual agent so you can see the LLM decide <em>when</em> to call each tool and what to do with the results.</p>
 <p>Start the ADK web interface:</p>
-<pre><code language="language-bash" class="language-bash">adk web
+<pre><code language="language-bash" class="language-bash">cd agents &amp;&amp; adk web --port 8080 --reload_agents
 </code></pre>
 <p>Select <code>content_analyzer_agent</code> from the dropdown, then send:</p>
 <pre><code language="language-text" class="language-text">Analyze this text: &#34;Artificial intelligence is transforming the way we work and live. Machine learning models can now write code, generate images, and hold conversations. These tools are becoming essential for developers and businesses alike.&#34;
 </code></pre>
-<p>You should see the agent call <code>count_words</code>, <code>calculate_readability_score</code>, and <code>generate_hashtags</code> in sequence, then return a structured report — for example:</p>
+<p>The agent has three tools at its disposal:</p>
+<ul>
+<li><strong><code>count_words</code></strong> — the one you just implemented. Splits the text on whitespace and returns the word count.</li>
+<li><strong><code>calculate_readability_score</code></strong> — applies the Flesch Reading Ease formula and returns a score (0–100) and a grade label (e.g. &#34;Standard&#34;, &#34;Easy&#34;). Higher score = easier to read.</li>
+<li><strong><code>generate_hashtags</code></strong> — extracts the most frequent non-stop words from the text and formats them as <code>#Hashtags</code> for social media use.</li>
+</ul>
+<p>You should see the agent call all three in sequence, then return a structured report — for example:</p>
 <pre><code language="language-text" class="language-text">Word count: 42 words
 Readability: score 48.3 (Standard / 10th grade)
 Hashtags: #machinelearning #artificialintelligence #tools #developers #businesses
