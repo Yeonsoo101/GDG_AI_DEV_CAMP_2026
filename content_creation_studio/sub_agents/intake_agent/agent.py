@@ -1,5 +1,5 @@
 from google.adk.agents import Agent
-from content_creation_studio.config import MODEL_NAME
+from content_creation_studio.config import MODEL_NAME, GENERATE_CONTENT_CONFIG
 
 intake_agent = Agent(
     name="intake_agent",
@@ -17,5 +17,6 @@ intake_agent = Agent(
     Tone: <tone>
     Keywords: <keywords>
     """,
+    generate_content_config=GENERATE_CONTENT_CONFIG,
     output_key="content_brief"
 )

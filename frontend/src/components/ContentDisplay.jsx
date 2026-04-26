@@ -7,7 +7,16 @@ const CHANNELS = [
   { key: 'seo_metadata', label: 'SEO Metadata', icon: 'search', filename: 'seo_metadata.md' },
 ]
 
-function ContentDisplay({ contentPieces, isGenerating }) {
+const REASON_LABEL = {
+  quota: 'quota exhausted',
+  service: 'service unavailable',
+  timeout: 'timeout',
+  task_group: 'agent error',
+  unknown: 'no content produced',
+  error: 'unknown error',
+}
+
+function ContentDisplay({ contentPieces, failedChannels = {}, isGenerating }) {
   const [copiedChannel, setCopiedChannel] = useState(null)
 
   const copyToClipboard = (channel, text) => {
@@ -33,10 +42,12 @@ function ContentDisplay({ contentPieces, isGenerating }) {
         {CHANNELS.map(({ key, label, icon, filename }) => {
           const content = contentPieces[key]
           const isReady = !!content
-          const isWaiting = !isReady && isGenerating
+          const failure = failedChannels[key]
+          const isFailed = !isReady && !!failure
+          const isWaiting = !isReady && !isFailed && isGenerating
 
           return (
-            <div key={key} className={`channel-card ${isReady ? 'ready' : ''} ${isWaiting ? 'waiting' : ''}`}>
+            <div key={key} className={`channel-card ${isReady ? 'ready' : ''} ${isWaiting ? 'waiting' : ''} ${isFailed ? 'failed' : ''}`}>
               <div className="channel-header">
                 <span className="channel-label">{label}</span>
                 {isReady && (
@@ -66,7 +77,16 @@ function ContentDisplay({ contentPieces, isGenerating }) {
                     <span>Generating...</span>
                   </div>
                 )}
-                {!isReady && !isWaiting && (
+                {isFailed && (
+                  <div className="channel-failed">
+                    <span className="channel-failed-icon">&#9888;</span>
+                    <div className="channel-failed-body">
+                      <strong>Failed: {REASON_LABEL[failure.reason] || failure.reason}</strong>
+                      {failure.message && <p>{failure.message}</p>}
+                    </div>
+                  </div>
+                )}
+                {!isReady && !isWaiting && !isFailed && (
                   <div className="channel-empty">Waiting to start</div>
                 )}
                 {isReady && (

@@ -11,6 +11,8 @@ function App() {
   const [progress, setProgress] = useState([])
   // Each channel arrives independently: { blog_post, social_media, email_newsletter, seo_metadata }
   const [contentPieces, setContentPieces] = useState({})
+  // Per-channel failure info: { [channel]: { reason, message } }
+  const [failedChannels, setFailedChannels] = useState({})
   const [error, setError] = useState(null)
   const [lastFormData, setLastFormData] = useState(null)
 
@@ -19,6 +21,7 @@ function App() {
     setIsGenerating(true)
     setProgress([])
     setContentPieces({})
+    setFailedChannels({})
     setError(null)
 
     const apiUrl = '/api/create-content'
@@ -38,6 +41,7 @@ function App() {
       .then(response => {
         const reader = response.body.getReader()
         const decoder = new TextDecoder()
+        let buffer = ''
 
         const readStream = () => {
           reader.read().then(({ done, value }) => {
@@ -46,8 +50,11 @@ function App() {
               return
             }
 
-            const chunk = decoder.decode(value)
-            const lines = chunk.split('\n')
+            // Buffer across chunks so large JSON payloads (e.g. blog post)
+            // are not split mid-line and silently dropped by JSON.parse
+            buffer += decoder.decode(value, { stream: true })
+            const lines = buffer.split('\n')
+            buffer = lines.pop() // keep any incomplete trailing line
 
             lines.forEach(line => {
               if (line.startsWith('data: ')) {
@@ -66,8 +73,15 @@ function App() {
                     setProgress(prev => [...prev, {
                       type: 'event',
                       author: data.author,
-                      preview: data.content_preview
                     }])
+                  } else if (data.type === 'partial_failure') {
+                    setFailedChannels(prev => {
+                      const next = { ...prev }
+                      data.failed_channels.forEach(channel => {
+                        next[channel] = { reason: data.reason, message: data.message }
+                      })
+                      return next
+                    })
                   } else if (data.type === 'complete') {
                     setIsGenerating(false)
                   } else if (data.type === 'error') {
@@ -158,6 +172,7 @@ function App() {
               {hasContent && (
                 <ContentDisplay
                   contentPieces={contentPieces}
+                  failedChannels={failedChannels}
                   isGenerating={isGenerating}
                 />
               )}

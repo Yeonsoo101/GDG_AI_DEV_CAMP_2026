@@ -189,11 +189,27 @@ async def create_content(request: ContentRequest):
                 if channels_received:
                     yield f"data: {json.dumps({'type': 'complete', 'session_id': session_id})}\n\n"
                 else:
-                    yield f"data: {json.dumps({'type': 'error', 'message': 'No content received from agents'})}\n\n"
+                    yield f"data: {json.dumps({'type': 'error', 'message': 'No content received from agents', 'retryable': True})}\n\n"
 
             except Exception as e:
                 error_message = str(e)
-                yield f"data: {json.dumps({'type': 'error', 'message': error_message})}\n\n"
+                if "429" in error_message or "RESOURCE_EXHAUSTED" in error_message:
+                    friendly = "The AI service is temporarily busy (quota exhausted). Please wait a moment and try again."
+                    retryable = True
+                elif "TaskGroup" in error_message:
+                    friendly = "Some content channels had issues during generation. Please try again."
+                    retryable = True
+                elif "500" in error_message or "503" in error_message or "UNAVAILABLE" in error_message:
+                    friendly = "The AI service experienced a temporary issue. Please try again."
+                    retryable = True
+                elif "DEADLINE_EXCEEDED" in error_message or "timeout" in error_message.lower():
+                    friendly = "The workflow took too long to complete. Please try again."
+                    retryable = True
+                else:
+                    friendly = "An unexpected error occurred. Please try again."
+                    retryable = False
+                print(f"Error detail: {error_message}")
+                yield f"data: {json.dumps({'type': 'error', 'message': friendly, 'retryable': retryable})}\n\n"
 
         return StreamingResponse(
             generate(),
@@ -205,7 +221,11 @@ async def create_content(request: ContentRequest):
         )
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        error_message = str(e)
+        print(f"Error detail: {error_message}")
+        if "429" in error_message or "RESOURCE_EXHAUSTED" in error_message:
+            raise HTTPException(status_code=429, detail="The AI service is temporarily busy (quota exhausted). Please try again later.")
+        raise HTTPException(status_code=500, detail="An error occurred starting the workflow. Please try again.")
 
 
 @app.post("/api/analyze-text")
@@ -255,7 +275,11 @@ async def analyze_text(request: AnalyzeRequest):
         }
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        error_message = str(e)
+        print(f"Error detail: {error_message}")
+        if "429" in error_message or "RESOURCE_EXHAUSTED" in error_message:
+            raise HTTPException(status_code=429, detail="The AI service is temporarily busy (quota exhausted). Please try again later.")
+        raise HTTPException(status_code=500, detail="An error occurred during analysis. Please try again.")
 
 
 if __name__ == "__main__":

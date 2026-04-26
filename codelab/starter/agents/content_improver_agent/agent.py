@@ -1,11 +1,15 @@
 from google.adk.agents import Agent
 from .tools import exit_loop, QUALITY_THRESHOLD_MET
+from ..common.callbacks import inject_current_date
+from ..common.retry import GENERATE_CONTENT_CONFIG
 MODEL_NAME = "gemini-2.5-flash"
 
 content_improver_agent = Agent(
     name="content_improver_agent",
     model=MODEL_NAME,
     instruction=f"""
+    Today's date is {{current_date}}. Keep any time-sensitive references aligned with this date.
+
     Current content: {{current_content}}
     Feedback: {{quality_feedback}}
 
@@ -22,6 +26,8 @@ content_improver_agent = Agent(
       Output the COMPLETE improved content in markdown.
     """,
     tools=[exit_loop],  # exit_loop sets tool_context.actions.escalate = True to break the loop
+    before_agent_callback=inject_current_date,
+    generate_content_config=GENERATE_CONTENT_CONFIG,
     output_key="current_content",  # Overwrites the previous draft in session state
 )
 

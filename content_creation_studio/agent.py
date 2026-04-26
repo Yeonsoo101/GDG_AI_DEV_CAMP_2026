@@ -6,7 +6,7 @@ load_dotenv()
 
 from google.adk.agents import SequentialAgent, LoopAgent, ParallelAgent, Agent
 from google.adk.tools import preload_memory_tool
-from content_creation_studio.config import MODEL_NAME, MAX_IMPROVEMENT_ITERATIONS
+from content_creation_studio.config import MODEL_NAME, MAX_IMPROVEMENT_ITERATIONS, GENERATE_CONTENT_CONFIG
 from content_creation_studio.callbacks import (
     before_agent_callback,
     after_agent_callback,
@@ -81,6 +81,7 @@ master_orchestrator_agent = Agent(
     """,
     sub_agents=[full_content_workflow, content_analyzer_agent],
     tools=[preload_memory_tool.PreloadMemoryTool()],
+    generate_content_config=GENERATE_CONTENT_CONFIG,
     before_agent_callback=before_agent_callback,
     after_agent_callback=after_agent_callback,
     before_model_callback=before_model_callback,

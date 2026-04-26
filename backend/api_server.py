@@ -33,6 +33,21 @@ CHANNEL_MAP = {
     "seo_metadata_agent": "seo_metadata",
 }
 
+EXPECTED_CHANNELS = set(CHANNEL_MAP.values())
+
+
+def _classify_error(error_message: str):
+    """Map an exception string to (reason, friendly_message, retryable)."""
+    if "429" in error_message or "RESOURCE_EXHAUSTED" in error_message:
+        return "quota", "The AI service is temporarily busy (quota exhausted). Please wait a moment and try again.", True
+    if "TaskGroup" in error_message:
+        return "task_group", "Some content channels had issues during generation. Please try again.", True
+    if "500" in error_message or "503" in error_message or "UNAVAILABLE" in error_message:
+        return "service", "The AI service experienced a temporary issue. Please try again.", True
+    if "DEADLINE_EXCEEDED" in error_message or "timeout" in error_message.lower():
+        return "timeout", "The workflow took too long to complete. Please try again.", True
+    return "error", "An unexpected error occurred. Please try again.", False
+
 # Get remote agent instance if configured
 remote_agent = None
 if AGENT_RESOURCE_NAME:
@@ -186,14 +201,28 @@ async def create_content(request: ContentRequest):
                         # Progress update for non-channel events
                         yield f"data: {json.dumps({'type': 'event', 'event_id': event_count, 'author': author})}\n\n"
 
+                missing_channels = sorted(EXPECTED_CHANNELS - channels_received)
                 if channels_received:
+                    if missing_channels:
+                        yield f"data: {json.dumps({'type': 'partial_failure', 'failed_channels': missing_channels, 'reason': 'unknown', 'message': 'Some channels did not produce content.'})}\n\n"
                     yield f"data: {json.dumps({'type': 'complete', 'session_id': session_id})}\n\n"
                 else:
-                    yield f"data: {json.dumps({'type': 'error', 'message': 'No content received from agents'})}\n\n"
+                    yield f"data: {json.dumps({'type': 'error', 'message': 'No content received from agents', 'retryable': True})}\n\n"
 
             except Exception as e:
                 error_message = str(e)
-                yield f"data: {json.dumps({'type': 'error', 'message': error_message})}\n\n"
+                print(f"Error detail: {error_message}")
+                reason, friendly, retryable = _classify_error(error_message)
+                # Partial success: at least one channel streamed in. Surface
+                # the failure per-channel and still emit `complete` so the UI
+                # stops spinning on the channels that did succeed.
+                if channels_received:
+                    missing_channels = sorted(EXPECTED_CHANNELS - channels_received)
+                    if missing_channels:
+                        yield f"data: {json.dumps({'type': 'partial_failure', 'failed_channels': missing_channels, 'reason': reason, 'message': friendly})}\n\n"
+                    yield f"data: {json.dumps({'type': 'complete', 'session_id': session_id})}\n\n"
+                    return
+                yield f"data: {json.dumps({'type': 'error', 'message': friendly, 'retryable': retryable})}\n\n"
 
         return StreamingResponse(
             generate(),
@@ -205,7 +234,11 @@ async def create_content(request: ContentRequest):
         )
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        error_message = str(e)
+        print(f"Error detail: {error_message}")
+        if "429" in error_message or "RESOURCE_EXHAUSTED" in error_message:
+            raise HTTPException(status_code=429, detail="The AI service is temporarily busy (quota exhausted). Please try again later.")
+        raise HTTPException(status_code=500, detail="An error occurred starting the workflow. Please try again.")
 
 
 @app.post("/api/analyze-text")
@@ -255,7 +288,11 @@ async def analyze_text(request: AnalyzeRequest):
         }
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        error_message = str(e)
+        print(f"Error detail: {error_message}")
+        if "429" in error_message or "RESOURCE_EXHAUSTED" in error_message:
+            raise HTTPException(status_code=429, detail="The AI service is temporarily busy (quota exhausted). Please try again later.")
+        raise HTTPException(status_code=500, detail="An error occurred during analysis. Please try again.")
 
 
 if __name__ == "__main__":

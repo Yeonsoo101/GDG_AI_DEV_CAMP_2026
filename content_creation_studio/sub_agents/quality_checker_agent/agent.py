@@ -1,7 +1,7 @@
 from google.adk.agents import Agent
 from google.adk.tools import FunctionTool
 from content_creation_studio.tools import calculate_content_quality_score, QUALITY_THRESHOLD_MET
-from content_creation_studio.config import MODEL_NAME
+from content_creation_studio.config import MODEL_NAME, GENERATE_CONTENT_CONFIG
 
 quality_checker_agent = Agent(
     name="quality_checker_agent",
@@ -22,5 +22,6 @@ quality_checker_agent = Agent(
     - ELSE, respond with: 'Quality score: [score]. Issues: [specific problems]'
     """,
     tools=[FunctionTool(calculate_content_quality_score)],
+    generate_content_config=GENERATE_CONTENT_CONFIG,
     output_key="quality_feedback"
 )

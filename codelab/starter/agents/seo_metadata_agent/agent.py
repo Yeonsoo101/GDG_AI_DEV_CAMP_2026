@@ -1,10 +1,14 @@
 from google.adk.agents import Agent
+from ..common.callbacks import inject_current_date
+from ..common.retry import GENERATE_CONTENT_CONFIG
 MODEL_NAME = "gemini-2.5-flash"
 
 seo_metadata_agent = Agent(
     name="seo_metadata_agent",
     model=MODEL_NAME,
     instruction="""
+    Today's date is {{current_date}}. Use this when a year/recency signal belongs in the metadata (e.g. focus keyword for the current year).
+
     You are an SEO specialist. Generate metadata based on: {{current_content}}
 
     Create:
@@ -17,6 +21,8 @@ seo_metadata_agent = Agent(
     Format as readable markdown with bold labels, not JSON.
     """,
     tools=[],
+    before_agent_callback=inject_current_date,
+    generate_content_config=GENERATE_CONTENT_CONFIG,
     output_key="seo_metadata",  # Saves to session state["seo_metadata"]
 )
 

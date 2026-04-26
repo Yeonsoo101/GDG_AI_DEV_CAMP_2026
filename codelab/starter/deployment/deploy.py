@@ -93,7 +93,6 @@ def deploy_to_agent_engine():
     adk_app = agent_engines.AdkApp(
         agent=root_agent,
         app_name="content_creation",  # CRITICAL: Required for Memory Bank scope
-        enable_tracing=True,
         plugins=[LoggingPlugin()],  # Enable comprehensive observability logging
     )
 
@@ -114,12 +113,23 @@ def deploy_to_agent_engine():
             "numpy>=1.24.0",
             "vertexai>=1.38.0",
             "python-dotenv>=1.0.0",
+            # OpenTelemetry instrumentation — required for Cloud Trace + App Topology
+            # to receive spans from FastAPI, gRPC, httpx, Gemini, and Vertex AI calls.
+            "opentelemetry-instrumentation-fastapi",
+            "opentelemetry-instrumentation-grpc",
+            "opentelemetry-instrumentation-httpx",
+            "opentelemetry-instrumentation-google-genai>=0.4b0",
+            "opentelemetry-instrumentation-vertexai>=2.0b0",
         ],
         extra_packages=["agents"],
         display_name=DISPLAY_NAME,
         env_vars={
             "GOOGLE_CLOUD_AGENT_ENGINE_ENABLE_TELEMETRY": "true",
-            "OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT": "true",
+            "OTEL_SEMCONV_STABILITY_OPT_IN": "gen_ai_latest_experimental",
+            "OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT": "EVENT_ONLY",
+            # Capture prompt/response as span events so they appear in the
+            # Cloud Trace UI's span detail panel.
+            "ADK_CAPTURE_MESSAGE_CONTENT_IN_SPANS": "true",
         },
     )
 

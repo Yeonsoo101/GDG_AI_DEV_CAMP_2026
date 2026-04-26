@@ -1,8 +1,8 @@
-# Google ADK Multi-Agent on Vertex AI
+# Google ADK Multi-Agent on Gemini Enterprise Agent Platform
 
 **Multi-Agent Content Creation design consideration Workshop**
 
-An intelligent, multi-agent content creation system and comprehensive workshop powered by Google's Gemini models. This project demonstrates how to build AI agents with custom tools using Google's Agent Development Kit (ADK). Throughout the workshop, you will explore various design patterns (Sequential, Parallel, Iterative architectures), navigate agent architecture trade-offs (Sub-agents vs. Agent as a Tool), and master memory & context for reliable agent teams. It also covers implementing callbacks & observability, managing sessions, state, and artifacts, and achieving scalable deployment of a full-stack system (React frontend, FastAPI backend) to Vertex AI Agent Engine and Cloud Run on Google Cloud Platform.
+An intelligent, multi-agent content creation system and comprehensive workshop powered by Google's Gemini models. This project demonstrates how to build AI agents with custom tools using Google's Agent Development Kit (ADK). Throughout the workshop, you will explore various design patterns (Sequential, Parallel, Iterative architectures), navigate agent architecture trade-offs (Sub-agents vs. Agent as a Tool), and master memory & context for reliable agent teams. It also covers implementing callbacks & observability, managing sessions, state, and artifacts, and achieving scalable deployment of a full-stack system (React frontend, FastAPI backend) to **Gemini Enterprise Agent Platform Runtime** (formerly Vertex AI Agent Engine) and Cloud Run on Google Cloud Platform.
 
 ## Workshop Notebooks - Start Here!
 
@@ -21,7 +21,7 @@ Interactive Jupyter notebooks to learn how to build multi-agent systems step by 
 | 7 | Parallel Workflows | Execute agents in parallel for efficiency | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Saoussen-CH/google-adk-multi-agent-design-consideration-workshop/blob/main/notebooks/part7_parallel_workflows.ipynb) |
 | 8 | Callbacks, Context & Memory | Callbacks, sessions/state, artifacts, and memory, including ADK's LoggingPlugin for local observability | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Saoussen-CH/google-adk-multi-agent-design-consideration-workshop/blob/main/notebooks/part8_callbacks_context_memory.ipynb) |
 | 9 | Capstone Project | Build the complete Content Creation Studio | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Saoussen-CH/google-adk-multi-agent-design-consideration-workshop/blob/main/notebooks/part9_capstone_project.ipynb) |
-| 10 | Deployment | Deploy agents to Agent Engine on GCP | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Saoussen-CH/google-adk-multi-agent-design-consideration-workshop/blob/main/notebooks/part10_deployment_agent_engine.ipynb) |
+| 10 | Deployment | Deploy agents to Agent Platform Runtime on GCP | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Saoussen-CH/google-adk-multi-agent-design-consideration-workshop/blob/main/notebooks/part10_deployment_agent_engine.ipynb) |
 | 11 | Full-Stack Cloud Run | Deploy full-stack app (React + FastAPI) to Cloud Run | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Saoussen-CH/google-adk-multi-agent-design-consideration-workshop/blob/main/notebooks/part11_fullstack_cloud_run.ipynb) |
 
 ### Workshop Learning Path
@@ -31,14 +31,14 @@ Interactive Jupyter notebooks to learn how to build multi-agent systems step by 
 3. **Part 5-7**: Workflows - Master sequential, iterative, and parallel agent workflows
 4. **Part 8**: Callbacks, Context & Memory - Callbacks, sessions/state, artifacts, and long-term memory
 5. **Part 9**: Capstone Project - Build the complete Content Creation Studio
-6. **Part 10**: Deployment - Deploy to Vertex AI Agent Engine on GCP
-7. **Part 11**: Full-Stack Cloud Run - Deploy the full-stack app (React + FastAPI + Agent Engine) to Cloud Run
+6. **Part 10**: Deployment - Deploy to Agent Platform Runtime on GCP
+7. **Part 11**: Full-Stack Cloud Run - Deploy the full-stack app (React + FastAPI + Agent Platform Runtime) to Cloud Run
 
 **Tip**: Each notebook is self-contained and can be run independently in Google Colab. No local setup required!
 
 ---
 
-## Workshop: Google ADK & Vertex AI: Multi-Agent System Design
+## Workshop: Google ADK & Gemini Enterprise Agent Platform: Multi-Agent System Design
 
 What we will cover:
 
@@ -132,7 +132,7 @@ graph TB
     end
 
     subgraph "Google Cloud Platform"
-        subgraph "Vertex AI Agent Engine"
+        subgraph "Agent Platform Runtime"
             Orchestrator[Master Orchestrator<br/>Agent<br/>gemini-2.5-flash]
             Coordinator[Content Creation<br/>Coordinator<br/>gemini-2.5-flash]
             Analyzer[Content Analyzer<br/>Agent<br/>gemini-2.5-flash]
@@ -255,11 +255,11 @@ Before running locally, ensure you have:
 1. Python 3.11.13 installed (via pyenv recommended)
 2. Node.js 18+ installed
 3. Google API Key from [Google AI Studio](https://aistudio.google.com/app/apikey)
-4. Agent deployed to Agent Engine (see [Deploy Agent](#deploy-agent-to-agent-engine))
+4. Agent deployed to Agent Platform Runtime (see [Deploy Agent](#deploy-agent-to-agent-engine))
 
-### Option 1: Local Agent (No Agent Engine Required)
+### Option 1: Local Agent (No Agent Platform Runtime Required)
 
-Run the agent entirely on your local machine without deploying to Agent Engine.
+Run the agent entirely on your local machine without deploying to Agent Platform Runtime.
 
 **Step 1: Install Dependencies**
 ```bash
@@ -293,11 +293,11 @@ EOF
 
 ---
 
-### Option 2: Local Backend + Agent Engine
+### Option 2: Local Backend + Agent Platform Runtime
 
-Connect your local backend to a deployed Agent Engine instance.
+Connect your local backend to a deployed Agent Platform Runtime instance.
 
-**Step 1: Deploy Agent to Agent Engine**
+**Step 1: Deploy Agent to Agent Platform Runtime**
 ```bash
 # Deploy agent (one time)
 python deployment/deploy.py --action deploy
@@ -307,7 +307,7 @@ python deployment/deploy.py --action deploy
 
 **Step 2: Configure Environment**
 ```bash
-# Create .env file with Agent Engine resource
+# Create .env file with Agent Platform Runtime resource
 cat > .env << 'EOF'
 # Google Cloud Configuration
 GOOGLE_CLOUD_PROJECT=your-project-id
@@ -315,7 +315,7 @@ GOOGLE_CLOUD_LOCATION=us-central1
 GOOGLE_API_KEY=your_google_api_key_here
 GOOGLE_GENAI_USE_VERTEXAI=1
 
-# Agent Engine Resource
+# Agent Platform Runtime resource (env var name kept for compatibility)
 AGENT_ENGINE_RESOURCE_NAME=projects/.../locations/.../reasoningEngines/...
 
 # Agent Configuration
@@ -359,7 +359,7 @@ cd frontend && npm install && cd ..
 
 **Step 2: Configure for Local Development**
 ```bash
-# .env file (no Agent Engine required)
+# .env file (no Agent Platform Runtime required)
 cat > .env << 'EOF'
 GOOGLE_API_KEY=your_google_api_key_here
 GOOGLE_GENAI_USE_VERTEXAI=0
@@ -395,10 +395,10 @@ Navigate to http://localhost:5173
 
 **Issue: "AGENT_ENGINE_RESOURCE_NAME not set"**
 ```bash
-# Option 1: Deploy agent to Agent Engine
+# Option 1: Deploy agent to Agent Platform Runtime
 python deployment/deploy.py --action deploy
 
-# Option 2: Run locally without Agent Engine
+# Option 2: Run locally without Agent Platform Runtime
 # Set GOOGLE_GENAI_USE_VERTEXAI=0 in .env
 ```
 
@@ -436,7 +436,7 @@ content_creation_mas/
 │   ├── part10_deployment_agent_engine.ipynb
 │   └── part11_fullstack_cloud_run.ipynb
 ├── backend/                   # FastAPI backend (Cloud Run)
-│   ├── api_server.py         # API server that connects to Agent Engine
+│   ├── api_server.py         # API server that connects to Agent Platform Runtime
 │   └── requirements.txt
 ├── frontend/                  # React UI (Cloud Run)
 │   ├── src/
@@ -449,7 +449,7 @@ content_creation_mas/
 │   │   ├── App.jsx
 │   │   └── main.jsx
 │   └── package.json
-├── content_creation_studio/   # Multi-agent system (Agent Engine)
+├── content_creation_studio/   # Multi-agent system (Agent Platform Runtime)
 │   ├── agent.py              # Root agent orchestrator
 │   ├── tools.py              # Agent tools
 │   └── sub_agents/           # Specialized agents
@@ -463,7 +463,7 @@ content_creation_mas/
 │       ├── seo_metadata_agent/
 │       └── content_analyzer_agent/
 ├── deployment/                # Deployment scripts
-│   ├── deploy.py             # Deploy agent to Agent Engine
+│   ├── deploy.py             # Deploy agent to Agent Platform Runtime
 │   ├── deploy-combined.sh    # Deploy frontend/backend to Cloud Run
 │   └── cleanup.py            # Cleanup deployed resources
 ├── api_server.py             # Legacy local server
@@ -478,7 +478,7 @@ content_creation_mas/
 | `GOOGLE_CLOUD_PROJECT` | Yes | - | Google Cloud Project ID |
 | `GOOGLE_CLOUD_LOCATION` | No | `us-central1` | GCP region for deployment |
 | `GOOGLE_GENAI_USE_VERTEXAI` | No | `1` | Use Vertex AI (1) or AI Studio (0) |
-| `AGENT_ENGINE_RESOURCE_NAME` | Yes* | - | Agent Engine resource name (*required for backend) |
+| `AGENT_ENGINE_RESOURCE_NAME` | Yes* | - | Agent Platform Runtime resource name (*required for backend; var name kept for compatibility) |
 | `WORKER_MODEL` | No | `gemini-2.5-flash` | Model for worker agents |
 | `COORDINATOR_MODEL` | No | `gemini-2.5-flash` | Model for coordinator |
 | `QUALITY_SCORE_THRESHOLD` | No | `70` | Min quality score |
@@ -501,7 +501,9 @@ content_creation_mas/
 - **[API Docs](http://localhost:8000/docs)** - Interactive API reference (when server running)
 
 ### External Resources
-- **[Google Agent SDK Documentation](https://cloud.google.com/vertex-ai/generative-ai/docs/agent-builder/overview)** - Official ADK docs
+- **[Agent Development Kit (ADK) Documentation](https://docs.cloud.google.com/gemini-enterprise-agent-platform/build/adk)** - Official ADK docs
+- **[Agent Platform Runtime Docs](https://docs.cloud.google.com/gemini-enterprise-agent-platform/build/runtime)** - Managed runtime for ADK agents
+- **[Gemini Enterprise Agent Platform](https://docs.cloud.google.com/gemini-enterprise-agent-platform)** - Platform overview
 ## Contributing
 
 This is a workshop project. Feel free to:

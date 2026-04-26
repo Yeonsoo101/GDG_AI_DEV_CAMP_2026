@@ -1,6 +1,7 @@
 from google.adk.agents import Agent
 from google.adk.tools import FunctionTool
 from .tools import calculate_content_quality_score, QUALITY_THRESHOLD_MET
+from ..common.retry import GENERATE_CONTENT_CONFIG
 MODEL_NAME = "gemini-2.5-flash"
 
 quality_checker_agent = Agent(
@@ -22,6 +23,7 @@ quality_checker_agent = Agent(
     - ELSE, respond with: 'Quality score: [score]. Issues: [specific problems]'
     """,
     tools=[FunctionTool(calculate_content_quality_score)],
+    generate_content_config=GENERATE_CONTENT_CONFIG,
     output_key="quality_feedback",  # Saves feedback to session state["quality_feedback"]
 )
 

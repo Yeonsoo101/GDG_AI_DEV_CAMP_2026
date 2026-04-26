@@ -71,6 +71,12 @@ APIS=(
     "storage.googleapis.com"              # Cloud Storage
     "iam.googleapis.com"                  # IAM
     "cloudresourcemanager.googleapis.com" # Resource Manager
+    "logging.googleapis.com"              # Cloud Logging (agent logs + prompt/response capture)
+    "telemetry.googleapis.com"            # OTLP Telemetry ingestion (App Topology source)
+    "cloudtrace.googleapis.com"           # Cloud Trace API (read/write spans, Trace Explorer)
+    "apphub.googleapis.com"               # App Hub (powers Topology view)
+    "apptopology.googleapis.com"          # App Topology (agent relationship graph)
+    "observability.googleapis.com"        # Observability backend for App Topology
 )
 
 echo "Enabling APIs (this may take a few minutes)..."
@@ -149,6 +155,8 @@ ROLES=(
     "roles/run.invoker"               # Invoke Cloud Run services
     "roles/storage.objectViewer"      # Read from Cloud Storage
     "roles/logging.logWriter"         # Write logs
+    "roles/telemetry.tracesWriter"    # Write traces via Telemetry (OTLP) API
+    "roles/monitoring.metricWriter"   # Write metrics to Cloud Monitoring
     "roles/artifactregistry.writer"   # Push Docker images to Artifact Registry
 )
 

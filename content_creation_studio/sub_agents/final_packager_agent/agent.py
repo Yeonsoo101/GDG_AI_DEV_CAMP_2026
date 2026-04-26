@@ -4,7 +4,7 @@ from content_creation_studio.artifacts import (
     list_content_artifacts,
     load_content_artifact,
 )
-from content_creation_studio.config import MODEL_NAME
+from content_creation_studio.config import MODEL_NAME, GENERATE_CONTENT_CONFIG
 
 final_packager_agent = Agent(
     name="final_packager_agent",
@@ -36,5 +36,6 @@ final_packager_agent = Agent(
     Add a brief summary at the top.
     """,
     tools=[save_content_artifact, list_content_artifacts, load_content_artifact],
+    generate_content_config=GENERATE_CONTENT_CONFIG,
     output_key="final_content_package"
 )

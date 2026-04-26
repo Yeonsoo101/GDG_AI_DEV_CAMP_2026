@@ -1,7 +1,7 @@
 from google.adk.agents import Agent
 from google.adk.tools import FunctionTool
 from content_creation_studio.tools import count_words, calculate_readability_score, generate_hashtags
-from content_creation_studio.config import MODEL_NAME
+from content_creation_studio.config import MODEL_NAME, GENERATE_CONTENT_CONFIG
 
 content_analyzer_agent = Agent(
     name="content_analyzer_agent",
@@ -20,5 +20,6 @@ content_analyzer_agent = Agent(
         FunctionTool(count_words),
         FunctionTool(calculate_readability_score),
         FunctionTool(generate_hashtags)
-    ]
+    ],
+    generate_content_config=GENERATE_CONTENT_CONFIG,
 )

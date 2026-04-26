@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
   <meta name="theme-color" content="#4F7DC9">
   <meta charset="UTF-8">
-  <title>Build a Full-Stack Multi-Agent App with Google ADK &amp; Vertex AI</title>
+  <title>Build a Full-Stack Multi-Agent App with Google ADK &amp; Gemini Enterprise Agent Platform</title>
   <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Code+Pro:400|Roboto:400,300,400italic,500,700|Roboto+Mono">
   <link rel="stylesheet" href="//fonts.googleapis.com/icon?family=Material+Icons">
   <link rel="stylesheet" href="https://storage.googleapis.com/claat-public/codelab-elements.css">
@@ -24,7 +24,7 @@
   <google-codelab codelab-gaid=""
                   codelab-ga4id=""
                   id="content-creation-studio-adk"
-                  title="Build a Full-Stack Multi-Agent App with Google ADK &amp; Vertex AI"
+                  title="Build a Full-Stack Multi-Agent App with Google ADK &amp; Gemini Enterprise Agent Platform"
                   environment="web"
                   feedback-link="https://github.com/Saoussen-CH/google-adk-multi-agent-design-consideration-workshop/issues">
     
@@ -36,7 +36,7 @@
           <hr style="border:none;border-top:1px solid #dadce0;margin:0 0 20px 0;">
           <div style="display:flex;align-items:center;margin-bottom:16px;color:#5f6368;font-size:14px;">
             <svg style="margin-right:16px;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 24 24" fill="#5f6368"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
-            <span>Last updated Apr 11, 2026</span>
+            <span>Last updated Apr 26, 2026</span>
           </div>
           <div style="display:flex;align-items:center;color:#5f6368;font-size:14px;">
             <div style="margin-right:16px;flex-shrink:0;width:20px;height:20px;border-radius:50%;background:#bdc1c6;display:flex;align-items:center;justify-content:center;overflow:hidden;">
@@ -53,7 +53,7 @@
 <ul>
 <li><strong>Google ADK</strong> (Agent Development Kit) for orchestrating a multi-agent pipeline</li>
 <li><strong>Gemini 2.5 Flash</strong> as the foundation model across all agents</li>
-<li><strong>Vertex AI Agent Engine</strong> for managed agent deployment</li>
+<li><strong>Gemini Enterprise Agent Platform Runtime</strong> (formerly Vertex AI Agent Engine) for managed agent deployment</li>
 <li><strong>FastAPI + React</strong> served from a single <strong>Cloud Run</strong> container</li>
 </ul>
 <p>This is not a chatbot demo. You will build, deploy, and access a real web application backed by a team of collaborating AI agents.</p>
@@ -85,8 +85,8 @@
 <p>A team of specialized agents that collaborate to produce a complete content package from a single topic request.</p>
 <p class="image-container"><img alt="Multi-Agent System - Sequential, Loop, and Parallel agent pipeline" src="img/9ad048e29ea815b0.png"></p>
 <p><strong>Layer 2 - The Full-Stack App</strong></p>
-<p>A React frontend and FastAPI backend deployed as a single Cloud Run service, wired to your agents running on Vertex AI Agent Engine, with real-time streaming via Server-Sent Events.</p>
-<p class="image-container"><img alt="Full-Stack Architecture - React + FastAPI on Cloud Run, ADK agents on Vertex AI Agent Engine" src="img/7db52a9ffe2ab631.png"></p>
+<p>A React frontend and FastAPI backend deployed as a single Cloud Run service, wired to your agents running on Agent Platform Runtime, with real-time streaming via Server-Sent Events.</p>
+<p class="image-container"><img alt="Full-Stack Architecture - React + FastAPI on Cloud Run, ADK agents on Agent Platform Runtime" src="img/7db52a9ffe2ab631.png"></p>
 <h2 class="checklist" is-upgraded>What you&#39;ll learn</h2>
 <p><strong>ADK core concepts</strong></p>
 <ul>
@@ -106,9 +106,9 @@
 </ul>
 <p><strong>Deployment</strong></p>
 <ul>
-<li>Deploy agents to <strong>Vertex AI Agent Engine</strong> (managed, scalable)</li>
+<li>Deploy agents to <strong>Agent Platform Runtime</strong> (managed, scalable)</li>
 <li>Package a React + FastAPI app into a single Docker container and deploy to <strong>Cloud Run</strong></li>
-<li>Integrate the frontend with Agent Engine via the ADK <code>RemoteRunner</code></li>
+<li>Integrate the frontend with Agent Platform Runtime via the ADK <code>RemoteRunner</code></li>
 </ul>
 <h2 is-upgraded>Prerequisites</h2>
 <ul>
@@ -248,14 +248,14 @@ GOOGLE_GENAI_USE_VERTEXAI=1
 <p>The key shift: a chatbot <em>responds</em>. An agent <em>acts</em>.</p>
 <h2 is-upgraded>What is Google ADK?</h2>
 <p>The <strong>Agent Development Kit (ADK)</strong> is Google&#39;s open-source framework for building, evaluating, and deploying AI agents. It handles session state, tool calling, multi-agent coordination, streaming, and deployment - so you focus on the agent logic itself, not the infrastructure.</p>
-<p>ADK is model-agnostic but optimized for Gemini, and it runs the same way whether you&#39;re developing locally with <code>adk web</code> or scaling on Vertex AI Agent Engine.</p>
+<p>ADK is model-agnostic but optimized for Gemini, and it runs the same way whether you&#39;re developing locally with <code>adk web</code> or scaling on Agent Platform Runtime.</p>
 <h2 is-upgraded>The four building blocks</h2>
 <p><strong>Agent</strong> - a blueprint. Defines the instructions, model, and tools. It does not run itself.</p>
 <pre><code language="language-python" class="language-python">from google.adk.agents import Agent
 agent = Agent(name=&#34;my_agent&#34;, model=&#34;gemini-2.5-flash&#34;, instruction=&#34;...&#34;)
 </code></pre>
 <p><strong>Session</strong> - a conversation instance. Holds the full message history and a shared <code>state</code> dictionary. All agents in the same session read and write the same <code>state</code> dict. Sessions are identified by <code>session_id</code> and <code>user_id</code>.</p>
-<p><strong>SessionService</strong> - a session database. Creates, stores, and retrieves sessions by <code>session_id</code>. In local development, ADK uses <code>InMemorySessionService</code> (resets when the process exits). On Agent Engine, sessions are persisted automatically.</p>
+<p><strong>SessionService</strong> - a session database. Creates, stores, and retrieves sessions by <code>session_id</code>. In local development, ADK uses <code>InMemorySessionService</code> (resets when the process exits). On Agent Platform Runtime, sessions are persisted automatically (via Agent Platform Sessions).</p>
 <p><strong>Runner</strong> - the execution engine. Takes an agent and a session service, then exposes <code>run_async()</code> which accepts a user message and yields a stream of events. When you run <code>adk web</code>, ADK creates a <code>Runner</code> internally.</p>
 <pre><code language="language-python" class="language-python">from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
@@ -348,7 +348,7 @@ topic_research_agent = Agent(
     output_key=&#34;blog_topic&#34;,
 )
 </code></pre>
-<aside class="special"><p><strong>Why </strong><strong><code>MODEL_NAME = "gemini-2.5-flash"</code></strong><strong> is defined inline:</strong> Each agent declares its own <code>MODEL_NAME</code> constant rather than importing from a shared file. This keeps every agent self-contained — <code>adk web</code> can load any single agent in isolation without needing other modules on the path. Passing it as a plain string (not a pre-configured <code>Gemini</code> object) lets ADK construct the model at runtime using Vertex AI credentials on Agent Engine and your local API key during development.</p>
+<aside class="special"><p><strong>Why </strong><strong><code>MODEL_NAME = "gemini-2.5-flash"</code></strong><strong> is defined inline:</strong> Each agent declares its own <code>MODEL_NAME</code> constant rather than importing from a shared file. This keeps every agent self-contained — <code>adk web</code> can load any single agent in isolation without needing other modules on the path. Passing it as a plain string (not a pre-configured <code>Gemini</code> object) lets ADK construct the model at runtime using Vertex AI credentials on Agent Platform Runtime and your local API key during development.</p>
 </aside>
 <p><strong>Why output_key?</strong> Without it, the agent&#39;s response exists only as a conversation message. With <code>output_key="blog_topic"</code>, ADK automatically writes the response text to <code>session.state["blog_topic"]</code> - making it available to every other agent in the pipeline via <code>&#123;&#123;blog_topic}}</code> templating.</p>
 <h2 is-upgraded>Test the agent</h2>
@@ -1247,7 +1247,7 @@ await tool_context.save_artifact(filename=&#34;blog_post.md&#34;, artifact=artif
 # Cross-session (persists across conversations)
 await tool_context.save_artifact(filename=&#34;user:blog_post.md&#34;, artifact=artifact)
 </code></pre>
-<aside class="special"><p><strong>Production note: </strong><code>InMemoryArtifactService</code> is for local development and resets when the process restarts. For production on Agent Engine, use <code>GcsArtifactService</code> backed by a Cloud Storage bucket - artifacts then persist indefinitely.</p>
+<aside class="special"><p><strong>Production note: </strong><code>InMemoryArtifactService</code> is for local development and resets when the process restarts. For production on Agent Platform Runtime, use <code>GcsArtifactService</code> backed by a Cloud Storage bucket - artifacts then persist indefinitely.</p>
 </aside>
 
 
@@ -1290,7 +1290,7 @@ await tool_context.save_artifact(filename=&#34;user:blog_post.md&#34;, artifact=
 <p>The <strong>write side</strong> is already handled: the <code>after_agent_callback</code> you implemented in the <strong>Callbacks</strong> section calls <code>await memory_service.add_session_to_memory(session)</code> after every agent turn.</p>
 <p>The <strong>read side</strong> is <code>PreloadMemoryTool</code> - ADK automatically invokes it before each turn to inject relevant past sessions into the model&#39;s context. You already wired it into <code>master_orchestrator_agent</code> in the <strong>Master Orchestrator</strong> section, so no code changes are needed here.</p>
 <h2 is-upgraded>Test cross-session memory</h2>
-<aside class="warning"><p><strong><code>adk web</code></strong><strong> uses </strong><strong><code>InMemorySessionService</code></strong> — sessions are isolated in-process and do not persist when you open a new session or restart the server. Cross-session memory only works when the agent is deployed to <strong>Vertex AI Agent Engine with Memory Bank</strong> enabled.</p>
+<aside class="warning"><p><strong><code>adk web</code></strong><strong> uses </strong><strong><code>InMemorySessionService</code></strong> — sessions are isolated in-process and do not persist when you open a new session or restart the server. Cross-session memory only works when the agent is deployed to <strong>Agent Platform Runtime with Agent Platform Memory Bank</strong> enabled.</p>
 </aside>
 <p>To verify memory works, use the deployed agent:</p>
 <pre><code language="language-bash" class="language-bash">python deployment/deploy.py --action test_remote
@@ -1307,23 +1307,29 @@ await tool_context.save_artifact(filename=&#34;user:blog_post.md&#34;, artifact=
 &#34;Python async programming for backend developers&#34;. Would you like
 to create more content on that topic or explore something new?
 </code></pre>
-<aside class="special"><p><strong>How it works on Agent Engine:</strong> Memory Bank is a managed vector store. After each turn, <code>after_agent_callback</code> calls <code>memory_service.add_session_to_memory()</code> to write the session. Before each turn, <code>PreloadMemoryTool</code> queries Memory Bank and injects relevant past sessions into the model context automatically.</p>
+<aside class="special"><p><strong>How it works on Agent Platform Runtime:</strong> Agent Platform Memory Bank is a managed vector store. After each turn, <code>after_agent_callback</code> calls <code>memory_service.add_session_to_memory()</code> to write the session. Before each turn, <code>PreloadMemoryTool</code> queries Memory Bank and injects relevant past sessions into the model context automatically.</p>
 </aside>
 
 
       </google-codelab-step>
     
-      <google-codelab-step label="Deploy to Vertex AI Agent Engine" duration="0">
-        <aside class="special"><p><strong>Prerequisites:</strong> Vertex AI API enabled on your GCP project. Your credentials are already set up from Cloud Shell - no extra authentication needed.</p>
+      <google-codelab-step label="Deploy to Agent Platform Runtime" duration="0">
+        <aside class="special"><p><strong>Prerequisites:</strong> Vertex AI API enabled on your GCP project (Agent Platform Runtime is part of the Vertex AI / Gemini Enterprise stack). Your credentials are already set up from Cloud Shell - no extra authentication needed.</p>
 </aside>
-<h2 is-upgraded>What is Agent Engine?</h2>
-<p><strong>Vertex AI Agent Engine</strong> is Google Cloud&#39;s fully-managed platform for running ADK agents at scale. Think of it as &#34;Cloud Run for AI Agents&#34; - you give Google your agent code and they handle everything else.</p>
+<h2 is-upgraded>What is Agent Platform Runtime?</h2>
+<p><strong>Agent Platform Runtime</strong> (formerly Vertex AI Agent Engine) is the fully-managed runtime for ADK agents inside the <strong>Gemini Enterprise Agent Platform</strong>. Deploying an agent on Agent Runtime makes it available <strong>remotely</strong> to handle requests — any client (your Cloud Run backend, the in-console playground, scripts, other agents) can call it without ever holding the agent code itself.</p>
+<p><strong>Why deploy here instead of running it yourself?</strong></p>
+<ul>
+<li><strong>Serverless efficiency</strong> — A fully managed runtime deploys and scales agents efficiently with no underlying infrastructure to manage, and gives you reliable performance with built-in observability (Cloud Logging + Cloud Trace + metrics).</li>
+<li><strong>Context management</strong> — Agent Platform Sessions persist conversation state across requests, and Agent Platform Memory Bank stores long-term, personalized memories. Together they let your agents continue conversations and recall facts about users across sessions, instead of starting from scratch each turn.</li>
+<li><strong>Remote availability</strong> — Once deployed, the agent is exposed behind a stable resource name. The Python SDK (<code>agent_engines.get(...)</code>) gives you a remote handle that streams events as if the runner were local. This is what the FastAPI backend in the next section uses.</li>
+</ul>
 <p><strong>Why not just keep running locally?</strong></p>
 <p>Your agent works great in <code>adk web</code>. But local development has hard limits:</p>
 <table>
 <tr><td colspan="1" rowspan="1"><p>Problem</p>
 </td><td colspan="1" rowspan="1"><p>Local</p>
-</td><td colspan="1" rowspan="1"><p>Agent Engine</p>
+</td><td colspan="1" rowspan="1"><p>Agent Platform Runtime</p>
 </td></tr>
 <tr><td colspan="1" rowspan="1"><p>Who can use it</p>
 </td><td colspan="1" rowspan="1"><p>Only you</p>
@@ -1346,11 +1352,11 @@ to create more content on that topic or explore something new?
 </td><td colspan="1" rowspan="1"><p>Always on</p>
 </td></tr>
 </table>
-<p><strong>Agent Engine vs building your own infrastructure:</strong></p>
+<p><strong>Agent Platform Runtime vs building your own infrastructure:</strong></p>
 <table>
 <tr><td colspan="1" rowspan="1"><p>Concern</p>
 </td><td colspan="1" rowspan="1"><p>DIY</p>
-</td><td colspan="1" rowspan="1"><p>Agent Engine</p>
+</td><td colspan="1" rowspan="1"><p>Agent Platform Runtime</p>
 </td></tr>
 <tr><td colspan="1" rowspan="1"><p>Servers and containers</p>
 </td><td colspan="1" rowspan="1"><p>You set up</p>
@@ -1389,7 +1395,7 @@ gcloud storage buckets create gs://$GOOGLE_CLOUD_PROJECT-content-studio --locati
 <h2 is-upgraded>Deploy</h2>
 <pre><code language="language-bash" class="language-bash">python deployment/deploy.py --action deploy
 </code></pre>
-<p>This packages your <code>agents/</code> module, uploads it to GCS, and deploys it to Agent Engine. The process takes 5-10 minutes. When complete, it prints a resource name like:</p>
+<p>This packages your <code>agents/</code> module, uploads it to GCS, and deploys it to Agent Platform Runtime. The process takes 5-10 minutes. When complete, it prints a resource name like:</p>
 <pre><code language="language-text" class="language-text">projects/123456/locations/us-central1/reasoningEngines/789012345
 </code></pre>
 <p>Open your <code>.env</code> and add the resource name:</p>
@@ -1411,10 +1417,10 @@ Streaming response:
 [content streams in chunks]
 Test complete.
 </code></pre>
-<h2 is-upgraded>Test from the Vertex AI Console playground</h2>
+<h2 is-upgraded>Test from the Cloud Console playground</h2>
 <p>You can also chat with your deployed agent directly from the Google Cloud Console — no code required.</p>
 <ol type="1">
-<li>Open the <a href="https://console.cloud.google.com/vertex-ai/agents/agent-engines" target="_blank">Agent Engine console</a></li>
+<li>Open the <a href="https://console.cloud.google.com/vertex-ai/agents/agent-engines" target="_blank">Agent Platform Runtime console</a></li>
 <li>Click your deployed agent (<code>content-creation-multiagentsystem</code>)</li>
 <li>Click <strong>Test in playground</strong></li>
 <li>Enter a prompt such as:</li>
@@ -1426,15 +1432,49 @@ Test complete.
 - Keywords: AI freelance, automation, productivity tools
 </code></pre>
 <p>You should see the agent run through the full pipeline — research → draft → quality loop → parallel content creation — and return blog post, social media, email newsletter, and SEO metadata.</p>
+<h2 is-upgraded>Inspect traces in Cloud Trace</h2>
+<p>Your <code>deploy.py</code> already enables OpenTelemetry tracing for the deployed agent via three env vars passed to <code>agent_engines.create()</code>:</p>
+<pre><code language="language-python" class="language-python">env_vars={
+    &#34;GOOGLE_CLOUD_AGENT_ENGINE_ENABLE_TELEMETRY&#34;: &#34;true&#34;,
+    &#34;OTEL_SEMCONV_STABILITY_OPT_IN&#34;: &#34;gen_ai_latest_experimental&#34;,
+    &#34;OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT&#34;: &#34;EVENT_ONLY&#34;,
+},
+</code></pre>
+<p>What each one does:</p>
+<table>
+<tr><td colspan="1" rowspan="1"><p>Env var</p>
+</td><td colspan="1" rowspan="1"><p>Effect</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>GOOGLE_CLOUD_AGENT_ENGINE_ENABLE_TELEMETRY</code></p>
+</td><td colspan="1" rowspan="1"><p>Turns on agent traces and logs (no prompt/response payloads). Replaces the older <code>enable_tracing=True</code> flag on <code>AdkApp</code>.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>OTEL_SEMCONV_STABILITY_OPT_IN</code></p>
+</td><td colspan="1" rowspan="1"><p>Opts in to the latest GenAI semantic conventions for span attributes.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT</code></p>
+</td><td colspan="1" rowspan="1"><p><code>EVENT_ONLY</code> captures prompt and response content as span events (so you can see what the model saw).</p>
+</td></tr>
+</table>
+<p>The Cloud Trace, Cloud Logging, and Telemetry APIs were already enabled when you ran <code>bash deployment/setup_gcp.sh</code> earlier — no extra step needed.</p>
+<aside class="warning"><p><strong>Pre-GA:</strong> Cloud Trace for Agent Platform Runtime is a Pre-GA feature subject to the &#34;Pre-GA Offerings Terms&#34; in the Google Cloud Service Specific Terms. The span format may change — don&#39;t depend on it being stable.</p>
+</aside>
+<p>After running a query (either from <code>--action test_remote</code> or the playground), view traces in the console:</p>
+<ol type="1">
+<li>Open the <a href="https://console.cloud.google.com/agent-platform/runtimes" target="_blank">Agent Platform Deployments page</a></li>
+<li>Click your deployment (<code>content-creation-multiagentsystem</code>)</li>
+<li>Click the <strong>Traces</strong> tab</li>
+<li>Switch between <strong>Session view</strong> and <strong>Span view</strong>, then click any session/span to see the DAG, inputs/outputs, and attributes</li>
+</ol>
+<p>You&#39;ll see one span per sub-agent and per LLM call — the structure mirrors the orchestrator you built (<code>research_and_draft_workflow</code> → <code>quality_improvement_loop</code> → <code>parallel_content_creation</code>), so the bottlenecks in your pipeline become visually obvious.</p>
 
 
       </google-codelab-step>
     
       <google-codelab-step label="Full-Stack Cloud Run Deployment" duration="0">
-        <aside class="special"><p><strong>Prerequisites:</strong> Agent Engine deployed (previous section) and <code>AGENT_ENGINE_RESOURCE_NAME</code> set in your <code>.env</code>.</p>
+        <aside class="special"><p><strong>Prerequisites:</strong> Agent Platform Runtime deployment complete (previous section) and <code>AGENT_ENGINE_RESOURCE_NAME</code> set in your <code>.env</code>. The variable name is kept for compatibility with existing deployments.</p>
 </aside>
 <p>So far you&#39;ve run the agent locally via <code>adk web</code>. In this step you&#39;ll deploy a production web application: a React frontend served by a FastAPI backend, both packaged in a single Docker container on Cloud Run.</p>
-<h2 is-upgraded>How the backend connects to Agent Engine</h2>
+<h2 is-upgraded>How the backend connects to Agent Platform Runtime</h2>
 <p>Open the backend server file to explore it:</p>
 <pre><code language="language-bash" class="language-bash">cloudshell edit backend/api_server.py
 </code></pre>
@@ -1447,7 +1487,7 @@ remote_agent = None
 if AGENT_RESOURCE_NAME:
     remote_agent = agent_engines.get(AGENT_RESOURCE_NAME)
 </code></pre>
-<p><code>agent_engines.get()</code> returns a remote handle - a thin client that forwards calls to your deployed Agent Engine instance. You can then call <code>remote_agent.async_create_session()</code> and <code>remote_agent.async_stream_query()</code> as if it were a local runner.</p>
+<p><code>agent_engines.get()</code> returns a remote handle - a thin client that forwards calls to your deployed Agent Platform Runtime instance. (The Python SDK module is still named <code>agent_engines</code> even though the product is now called Agent Platform Runtime.) You can then call <code>remote_agent.async_create_session()</code> and <code>remote_agent.async_stream_query()</code> as if it were a local runner.</p>
 <h2 is-upgraded>The streaming endpoint</h2>
 <p>The <code>/api/create-content</code> endpoint streams results to the frontend using <strong>Server-Sent Events (SSE)</strong>:</p>
 <pre><code language="language-python" class="language-python">@app.post(&#34;/api/create-content&#34;)
@@ -1540,7 +1580,7 @@ async def serve_frontend():
 </ul>
 <p>Click <strong>Create Content</strong> — all four channels (Blog Post, Social Media, Email Newsletter, SEO Metadata) should stream in and populate in real time.</p>
 <p class="image-container"><img alt="Full-stack app demo - content streaming in real time" src="img/c5f65e37da2c2765.gif"></p>
-<p>Test the health endpoint to confirm the backend is connected to Agent Engine:</p>
+<p>Test the health endpoint to confirm the backend is connected to Agent Platform Runtime:</p>
 <pre><code language="language-bash" class="language-bash">curl https://your-service-url/health
 </code></pre>
 <p>Expected response:</p>
@@ -1573,7 +1613,7 @@ async def serve_frontend():
 <tr><td colspan="1" rowspan="1"><p>Cloud Run service</p>
 </td><td colspan="1" rowspan="1"><p><code>gcloud run services delete</code></p>
 </td></tr>
-<tr><td colspan="1" rowspan="1"><p>Agent Engine (Reasoning Engine)</p>
+<tr><td colspan="1" rowspan="1"><p>Agent Platform Runtime deployment (reasoning engine resource)</p>
 </td><td colspan="1" rowspan="1"><p><code>deploy.py --action cleanup</code></p>
 </td></tr>
 <tr><td colspan="1" rowspan="1"><p>Docker images in Artifact Registry</p>
@@ -1596,7 +1636,7 @@ async def serve_frontend():
 <pre><code language="language-text" class="language-text">⚠️  WARNING: This will DELETE the following resources:
 
   1. Cloud Run service: content-studio
-  2. Agent Engine: projects/123456/.../reasoningEngines/789012345
+  2. Agent Platform Runtime deployment: projects/123456/.../reasoningEngines/789012345
   3. Docker images in Artifact Registry
   4. Service Account: content-studio-sa@... (optional)
   5. Cloud Storage Bucket: gs://your-project-content-studio (optional)
@@ -1607,7 +1647,7 @@ Are you sure you want to proceed? (yes/no):
 </code></pre>
 <p>Type <code>yes</code> to proceed. Resources 4 and 5 will each prompt separately - you can choose to keep them if you plan to reuse the project.</p>
 <h2 is-upgraded>Verify in the Cloud Console</h2>
-<p>Navigate to <a href="https://console.cloud.google.com/vertex-ai/agents" target="_blank">Vertex AI → Agent Engine</a> and <a href="https://console.cloud.google.com/run" target="_blank">Cloud Run</a> and confirm your resources are no longer listed.</p>
+<p>Navigate to <a href="https://console.cloud.google.com/vertex-ai/agents" target="_blank">Agent Platform Runtime</a> and <a href="https://console.cloud.google.com/run" target="_blank">Cloud Run</a> and confirm your resources are no longer listed.</p>
 <p><strong>Tip:</strong> Set a <a href="https://cloud.google.com/billing/docs/how-to/budgets" target="_blank">budget alert</a> on your GCP project to get notified if charges exceed your expected threshold.</p>
 
 
@@ -1632,7 +1672,7 @@ Are you sure you want to proceed? (yes/no):
 └── content_analyzer_agent              [count_words, readability, hashtags]
 
 Deployed on:
-├── Vertex AI Agent Engine              [agents]
+├── Agent Platform Runtime              [agents]
 └── Cloud Run                           [React frontend + FastAPI backend]
 </code></pre>
 <h2 is-upgraded>ADK concepts you mastered</h2>
@@ -1685,7 +1725,7 @@ Deployed on:
 <tr><td colspan="1" rowspan="1"><p><code>PreloadMemoryTool</code></p>
 </td><td colspan="1" rowspan="1"><p>Cross-session memory recall</p>
 </td></tr>
-<tr><td colspan="1" rowspan="1"><p>Agent Engine deployment</p>
+<tr><td colspan="1" rowspan="1"><p>Agent Platform Runtime deployment</p>
 </td><td colspan="1" rowspan="1"><p>deployment/deploy.py</p>
 </td></tr>
 <tr><td colspan="1" rowspan="1"><p>Full-stack Cloud Run</p>
@@ -1695,15 +1735,16 @@ Deployed on:
 <h2 is-upgraded>Where to go next</h2>
 <ul>
 <li><strong>Persistent sessions:</strong> Replace <code>InMemorySessionService</code> with Cloud Firestore for sessions that survive server restarts</li>
-<li><strong>Production memory:</strong> Use Vertex AI Memory Bank (<code>memory_bank_resource_name</code> in <code>agent_engines.create()</code>)</li>
+<li><strong>Production memory:</strong> Use Agent Platform Memory Bank (<code>memory_bank_resource_name</code> in <code>agent_engines.create()</code>)</li>
 <li><strong>Production artifacts:</strong> Use <code>GcsArtifactService</code> backed by a Cloud Storage bucket</li>
 <li><strong>Tool-level observability:</strong> Add <code>before_tool_callback</code> / <code>after_tool_callback</code> to log every tool invocation</li>
 <li><strong>More patterns:</strong> Explore the workshop notebooks (Parts 1-10) for deeper dives into each concept</li>
 </ul>
 <h2 is-upgraded>Resources</h2>
 <ul>
-<li><a href="https://cloud.google.com/vertex-ai/generative-ai/docs/agent-builder/overview" target="_blank">Google ADK Documentation</a></li>
-<li><a href="https://cloud.google.com/vertex-ai/generative-ai/docs/agent-engine/overview" target="_blank">Vertex AI Agent Engine Docs</a></li>
+<li><a href="https://docs.cloud.google.com/gemini-enterprise-agent-platform/build/adk" target="_blank">Agent Development Kit (ADK) Documentation</a></li>
+<li><a href="https://docs.cloud.google.com/gemini-enterprise-agent-platform/build/runtime" target="_blank">Agent Platform Runtime Docs</a></li>
+<li><a href="https://docs.cloud.google.com/gemini-enterprise-agent-platform" target="_blank">Gemini Enterprise Agent Platform Overview</a></li>
 <li><a href="https://github.com/Saoussen-CH/google-adk-multi-agent-design-consideration-workshop" target="_blank">Workshop GitHub Repository</a></li>
 <li><a href="https://github.com/google/adk-samples" target="_blank">ADK Samples &amp; Examples</a></li>
 </ul>

@@ -11,6 +11,7 @@ Return None to proceed normally, or return a specific object to override behavio
 
 import time
 import logging
+from datetime import datetime, timezone
 from typing import Optional
 from google.adk.agents.callback_context import CallbackContext
 from google.adk.models import LlmResponse, LlmRequest
@@ -32,6 +33,22 @@ def _extract_session_id(session) -> str:
 # =============================================================================
 # AGENT CALLBACKS
 # =============================================================================
+
+def inject_current_date(callback_context: CallbackContext) -> Optional[types.Content]:
+    """Write today's UTC date into session state under `current_date`.
+
+    Idempotent: the first agent to run in a session populates the value,
+    every subsequent agent finds it already there and skips. Attached as
+    `before_agent_callback` on every leaf agent that references
+    {{current_date}} so prompts stay anchored to today instead of the
+    model's training-data year.
+    """
+    if "current_date" not in callback_context.state:
+        callback_context.state["current_date"] = (
+            datetime.now(timezone.utc).date().isoformat()
+        )
+    return None
+
 
 def before_agent_callback(callback_context: CallbackContext) -> Optional[types.Content]:
     """Logs when an agent starts execution and tracks start time.

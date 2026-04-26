@@ -8,7 +8,7 @@
 
 1. [Prerequisites](#prerequisites)
 2. [Initial Setup](#initial-setup)
-3. [Deploy Agent to Agent Engine](#deploy-agent-to-agent-engine)
+3. [Deploy Agent to Agent Platform Runtime](#deploy-agent-to-agent-engine)
 4. [Deploy to Cloud Run](#deploy-to-cloud-run)
 5. [Testing Your Deployment](#testing-your-deployment)
 6. [Test Prompts](#test-prompts)
@@ -167,7 +167,8 @@ COORDINATOR_MODEL=gemini-2.0-flash-exp
 QUALITY_SCORE_THRESHOLD=70
 MAX_IMPROVEMENT_ITERATIONS=3
 
-# Agent Engine Resource (will be set after deployment)
+# Agent Platform Runtime resource (will be set after deployment)
+# (var name kept for compatibility - this is your reasoning engine resource name)
 AGENT_ENGINE_RESOURCE_NAME=""
 EOF
 ```
@@ -191,7 +192,7 @@ cd ..
 
 ---
 
-## Deploy Agent to Agent Engine
+## Deploy Agent to Agent Platform Runtime
 
 ### Step 1: Verify Package Structure
 
@@ -215,16 +216,16 @@ python deployment/deploy.py --action deploy
 
 **What happens during deployment:**
 1. Packages your `content_creation_studio` agent
-2. Uploads to Vertex AI Agent Engine
+2. Uploads to Agent Platform Runtime
 3. Installs dependencies (google-adk==1.19.0, etc.)
 4. Creates reasoning engine instance
 
 **Expected output:**
 ```
 ============================================================
-DEPLOYING TO VERTEX AI AGENT ENGINE
+DEPLOYING TO AGENT PLATFORM RUNTIME
 ============================================================
-✓ Initialized Vertex AI
+✓ Initialized Vertex AI client
   Project: your-project-id
   Location: us-central1
   Staging: gs://your-project-staging
@@ -236,7 +237,7 @@ DEPLOYING TO VERTEX AI AGENT ENGINE
 ============================================================
 
 Resource Name: projects/773461168680/locations/us-central1/reasoningEngines/9027074026924670976
-Agent Engine ID: 9027074026924670976
+Reasoning Engine ID: 9027074026924670976
 
 Update your .env file with:
 AGENT_ENGINE_RESOURCE_NAME="projects/773461168680/locations/us-central1/reasoningEngines/9027074026924670976"
@@ -268,7 +269,7 @@ python deployment/deploy.py --action test_remote --resource_name "<your-resource
 
 ## Deploy to Cloud Run
 
-Now that your agent is deployed to Agent Engine, deploy the frontend and backend to Cloud Run.
+Now that your agent is deployed to Agent Platform Runtime, deploy the frontend and backend to Cloud Run.
 
 ### Step 1: Review Configuration
 
@@ -449,7 +450,7 @@ Create a complete content package for:
 
 ### Issue 1: "AGENT_ENGINE_RESOURCE_NAME not set"
 
-**Problem:** Backend can't connect to Agent Engine
+**Problem:** Backend can't connect to Agent Platform Runtime
 
 **Solution:**
 ```bash
@@ -518,13 +519,13 @@ gcloud run services describe content-studio \
 
 ---
 
-### Issue 5: Agent Engine Logs Show Errors
+### Issue 5: Agent Platform Runtime Logs Show Errors
 
 **Problem:** Agent crashes when processing requests
 
 **Solution:**
 ```bash
-# 1. Check Agent Engine logs
+# 1. Check Agent Platform Runtime logs
 gcloud logging read "resource.type=aiplatform.googleapis.com/ReasoningEngine" \
   --limit=50 \
   --format="table(timestamp, severity, textPayload)"
@@ -620,12 +621,12 @@ npm run dev
 
 ---
 
-### Option B: Local Backend + Cloud Agent Engine
+### Option B: Local Backend + Cloud Agent Platform Runtime
 
 **Best for:** Testing with production agent, hybrid development
 
 #### Prerequisites
-- Agent deployed to Agent Engine (see main deployment steps)
+- Agent deployed to Agent Platform Runtime (see main deployment steps)
 - AGENT_ENGINE_RESOURCE_NAME from deployment
 
 #### Step 1: Configure Environment
@@ -638,7 +639,7 @@ GOOGLE_CLOUD_LOCATION=us-central1
 GOOGLE_API_KEY=your_api_key_here
 GOOGLE_GENAI_USE_VERTEXAI=1
 
-# Agent Engine Resource (from deployment)
+# Agent Platform Runtime resource (var name kept for compatibility)
 AGENT_ENGINE_RESOURCE_NAME=projects/.../locations/.../reasoningEngines/...
 
 # Agent Configuration
@@ -737,11 +738,11 @@ curl http://localhost:8000/health
 | Feature | Local Development | Cloud Deployment |
 |---------|------------------|------------------|
 | **Setup Time** | 5 minutes | 30-40 minutes |
-| **Cost** | Free (API usage only) | Cloud Run + Agent Engine costs |
+| **Cost** | Free (API usage only) | Cloud Run + Agent Platform Runtime costs |
 | **Performance** | Depends on local machine | Scalable, managed |
 | **Access** | localhost only | Public URL |
 | **Best For** | Development, testing | Production, demos |
-| **Agent Location** | Runs locally | Agent Engine (managed) |
+| **Agent Location** | Runs locally | Agent Platform Runtime (managed) |
 
 ---
 
@@ -775,7 +776,8 @@ After successful deployment:
 
 - **[README.md](README.md)** - Project overview and architecture
 - **[deployment/README.md](deployment/README.md)** - Detailed deployment guide
-- **[Vertex AI Agent Engine Docs](https://cloud.google.com/vertex-ai/docs/agent-engine)** - Official documentation
+- **[Agent Platform Runtime Docs](https://docs.cloud.google.com/gemini-enterprise-agent-platform/build/runtime)** - Official documentation (formerly Vertex AI Agent Engine)
+- **[Gemini Enterprise Agent Platform](https://docs.cloud.google.com/gemini-enterprise-agent-platform)** - Platform overview
 - **[Google ADK GitHub](https://github.com/google/adk)** - Agent Development Kit
 
 ---
@@ -785,7 +787,7 @@ After successful deployment:
 If you encounter issues not covered in this guide:
 
 1. Check the [Troubleshooting](#troubleshooting) section
-2. Review Cloud Run and Agent Engine logs
+2. Review Cloud Run and Agent Platform Runtime logs
 3. Consult the official Google Cloud documentation
 4. Open an issue in the project repository
 
