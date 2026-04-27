@@ -358,8 +358,6 @@ topic_research_agent = Agent(
 
 root_agent = topic_research_agent
 </code></pre>
-<aside class="special"><p><strong>Why </strong><strong><code>MODEL_NAME = "gemini-2.5-flash"</code></strong><strong> is defined inline:</strong> Each agent declares its own <code>MODEL_NAME</code> constant rather than importing from a shared file. This keeps every agent self-contained — <code>adk web</code> can load any single agent in isolation without needing other modules on the path. Passing it as a plain string (not a pre-configured <code>Gemini</code> object) lets ADK construct the model at runtime using Vertex AI credentials on Agent Runtime and your local API key during development.</p>
-</aside>
 <p><strong>Why output_key?</strong> Without it, the agent&#39;s response exists only as a conversation message. With <code>output_key="blog_topic"</code>, ADK automatically writes the response text to <code>session.state["blog_topic"]</code> - making it available to every other agent in the pipeline via <code>{blog_topic}</code> templating.</p>
 <h2 is-upgraded>Test the agent</h2>
 <p><code>adk web</code> is ADK&#39;s built-in dev server. It discovers every agent package in your directory and serves a chat UI where you can test them interactively.</p>
@@ -376,8 +374,6 @@ root_agent = topic_research_agent
 </aside>
 <pre><code language="language-text" class="language-text">Find the best blog topic about sustainable packaging for eco-conscious millennials
 </code></pre>
-<aside class="special"><p><strong>What to expect:</strong> This agent only researches and outputs a <strong>single blog title</strong> - it does not write the full blog. The full pipeline (draft → quality loop → publish-ready post) is assembled in later steps. You are just testing one piece of it here.</p>
-</aside>
 <p>You&#39;ll see the agent call <code>google_search</code> and return a specific title. Expected output in the chat:</p>
 <pre><code language="language-text" class="language-text">&#34;10 Sustainable Packaging Innovations Winning Over Eco-Conscious Millennials in 2025&#34;
 </code></pre>
@@ -719,8 +715,6 @@ social_media_posts → &#34;**LinkedIn Post**\n...&#34;
 email_newsletter   → &#34;**Subject Line:** ...&#34;
 seo_metadata       → &#34;**Meta Title:** ...&#34;
 </code></pre>
-<aside class="special"><p><strong>Debugging Tip: Manual State Injection</strong> You can test the <code>parallel_content_creation</code> phase in isolation without running the full pipeline. Select <code>parallel_content_creation</code> from the dropdown, go to the <strong>State</strong> tab, and manually add a <code>current_content</code> key with some markdown text. Then send any message (like &#34;go&#34;) to trigger the agents. They will read your manual state and generate the outputs immediately!</p>
-</aside>
 <p>The complete hierarchy you just built:</p>
 <pre><code language="language-text" class="language-text">full_content_workflow (SequentialAgent)
 ├── 1. research_and_draft_workflow (SequentialAgent)
@@ -734,15 +728,6 @@ seo_metadata       → &#34;**Meta Title:** ...&#34;
        ├── email_newsletter_writer_agent
        └── seo_metadata_agent
 </code></pre>
-<h2 is-upgraded>Verify the structure</h2>
-<p>Run this command to verify that the pipeline is correctly nested and that ADK recognizes the types of your sub-agents:</p>
-<pre><code language="language-bash" class="language-bash">python -c &#34;
-import sys; sys.path.insert(0, &#39;agents&#39;)
-from orchestrator_agent.agent import full_content_workflow
-print([(a.name, type(a).__name__) for a in full_content_workflow.sub_agents])
-&#34;
-</code></pre>
-<p>Should print: <code>[('research_and_draft_workflow', 'SequentialAgent'), ('quality_improvement_loop', 'LoopAgent'), ('parallel_content_creation', 'ParallelAgent')]</code></p>
 <p>Press <code>Ctrl+C</code> to stop the server.</p>
 
 
