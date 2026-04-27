@@ -1,7 +1,7 @@
 from google.adk.agents import Agent
 from google.adk.tools import FunctionTool
 from .tools import calculate_content_quality_score, QUALITY_THRESHOLD_MET
-from ..common.retry import GENERATE_CONTENT_CONFIG
+from common.retry import GENERATE_CONTENT_CONFIG
 MODEL_NAME = "gemini-2.5-flash"
 
 quality_checker_agent = Agent(

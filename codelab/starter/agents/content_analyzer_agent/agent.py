@@ -1,7 +1,7 @@
 from google.adk.agents import Agent
 from google.adk.tools import FunctionTool
 from .tools import count_words, calculate_readability_score, generate_hashtags
-from ..common.retry import GENERATE_CONTENT_CONFIG
+from common.retry import GENERATE_CONTENT_CONFIG
 MODEL_NAME = "gemini-2.5-flash"
 
 content_analyzer_agent = Agent(

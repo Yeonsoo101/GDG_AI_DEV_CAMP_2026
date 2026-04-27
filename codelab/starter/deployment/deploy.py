@@ -121,7 +121,7 @@ def deploy_to_agent_engine():
             "opentelemetry-instrumentation-google-genai>=0.4b0",
             "opentelemetry-instrumentation-vertexai>=2.0b0",
         ],
-        extra_packages=["agents"],
+        extra_packages=["agents", "common"],
         display_name=DISPLAY_NAME,
         env_vars={
             "GOOGLE_CLOUD_AGENT_ENGINE_ENABLE_TELEMETRY": "true",

@@ -1,15 +1,15 @@
 from google.adk.agents import Agent
-from ..common.callbacks import inject_current_date
-from ..common.retry import GENERATE_CONTENT_CONFIG
+from common.callbacks import inject_current_date
+from common.retry import GENERATE_CONTENT_CONFIG
 MODEL_NAME = "gemini-2.5-flash"
 
 email_newsletter_writer_agent = Agent(
     name="email_newsletter_writer_agent",
     model=MODEL_NAME,
     instruction="""
-    Today's date is {{current_date}}. Anchor any time-sensitive references (seasonal hooks, "this month", "this year") to this date.
+    Today's date is {current_date}. Anchor any time-sensitive references (seasonal hooks, "this month", "this year") to this date.
 
-    You are an email marketing specialist. Create a newsletter from: {{current_content}}
+    You are an email marketing specialist. Create a newsletter from: {current_content}
 
     Include:
     - Subject Line (compelling, 50-60 chars)
