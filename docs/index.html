@@ -993,7 +993,7 @@ async def load_content_artifact(tool_context, filename) -&gt; str:
 <h2 is-upgraded>How you&#39;d wire artifacts into an agent</h2>
 <p>To give an agent the ability to save content as a file, add these tools to its <code>tools</code> list:</p>
 <pre><code language="language-python" class="language-python">from google.adk.tools import FunctionTool
-from agents.artifacts import (
+from artifacts import (
     save_content_artifact,
     list_content_artifacts,
     load_content_artifact,

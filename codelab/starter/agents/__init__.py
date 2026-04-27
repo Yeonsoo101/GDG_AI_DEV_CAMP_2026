@@ -1,4 +1,3 @@
-# Package marker — do not add imports here.
-# Eager imports trigger a circular load:
-#   orchestrator_agent.agent → agents → agents.orchestrator_agent.agent (second load)
-# deploy.py imports root_agent directly from agents.orchestrator_agent.agent.
+# Marker file. Each sub-agent is imported as a top-level module
+# (`adk web agents` and deploy.py both put `agents/` on sys.path).
+# Do not add imports here.

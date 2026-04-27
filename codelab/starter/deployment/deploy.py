@@ -26,11 +26,13 @@ import vertexai
 from vertexai import agent_engines
 from google.adk.plugins.logging_plugin import LoggingPlugin
 
-# Add project root to Python path so agents/ package is importable
+# Put codelab/starter/agents/ on sys.path so each sub-agent is importable as
+# a top-level module (matches `adk web agents` locally and the runtime layout
+# produced by listing each sub-agent dir individually in extra_packages).
 project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
+sys.path.insert(0, str(project_root / "agents"))
 
-from agents.orchestrator_agent.agent import root_agent
+from orchestrator_agent.agent import root_agent
 
 # Load environment variables from .env file
 load_dotenv()
@@ -121,7 +123,24 @@ def deploy_to_agent_engine():
             "opentelemetry-instrumentation-google-genai>=0.4b0",
             "opentelemetry-instrumentation-vertexai>=2.0b0",
         ],
-        extra_packages=["agents", "common"],
+        # Each sub-agent dir is uploaded as a top-level package so the
+        # orchestrator's `from topic_research_agent.agent import ...` imports
+        # resolve at runtime — same single-load layout as `adk web agents`
+        # locally. agents/artifacts.py is uploaded as a top-level file too.
+        extra_packages=[
+            "agents/topic_research_agent",
+            "agents/content_drafter_agent",
+            "agents/quality_checker_agent",
+            "agents/content_improver_agent",
+            "agents/blog_post_writer_agent",
+            "agents/social_media_creator_agent",
+            "agents/email_newsletter_writer_agent",
+            "agents/seo_metadata_agent",
+            "agents/content_analyzer_agent",
+            "agents/orchestrator_agent",
+            "agents/artifacts.py",
+            "common",
+        ],
         display_name=DISPLAY_NAME,
         env_vars={
             "GOOGLE_CLOUD_AGENT_ENGINE_ENABLE_TELEMETRY": "true",
