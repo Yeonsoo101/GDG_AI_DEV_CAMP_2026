@@ -11,13 +11,13 @@ from google.genai import types
 RETRY_CONFIG = types.HttpRetryOptions(
     attempts=3,
     exp_base=2,
-    initial_delay=1,
+    initial_delay=5,
     http_status_codes=[429, 500, 503, 504],
 )
 
 GENERATE_CONTENT_CONFIG = types.GenerateContentConfig(
     http_options=types.HttpOptions(
         retry_options=RETRY_CONFIG,
-        timeout=120, # 2 minute timeout for model calls
+        timeout=120_000,  # 120 second timeout for model calls
     ),
 )
