@@ -63,6 +63,10 @@ codelab/PUBLISH.md
 # claat local export (use docs/ for GitHub Pages)
 content-creation-studio-adk/
 
+# Codelab authoring tools (not workshop content)
+codelab/export.sh
+codelab/scripts/
+
 # Reference SVGs
 refs/
 
