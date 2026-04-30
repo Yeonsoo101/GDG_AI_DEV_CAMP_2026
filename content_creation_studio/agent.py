@@ -12,6 +12,8 @@ from content_creation_studio.callbacks import (
     after_agent_callback,
     before_model_callback,
     after_model_callback,
+    before_tool_callback,
+    after_tool_callback,
 )
 from content_creation_studio.sub_agents.topic_research_agent.agent import topic_research_agent
 from content_creation_studio.sub_agents.content_drafter_agent.agent import content_drafter_agent
@@ -26,14 +28,18 @@ from content_creation_studio.sub_agents.content_analyzer_agent.agent import cont
 # --- Sequential: Research and Draft ---
 research_and_draft_workflow = SequentialAgent(
     name="research_and_draft_workflow",
-    sub_agents=[topic_research_agent, content_drafter_agent]
+    sub_agents=[topic_research_agent, content_drafter_agent],
+    before_agent_callback=before_agent_callback,
+    after_agent_callback=after_agent_callback,
 )
 
 # --- Loop: Quality Improvement ---
 quality_improvement_loop = LoopAgent(
     name="quality_improvement_loop",
     sub_agents=[quality_checker_agent, content_improver_agent],
-    max_iterations=MAX_IMPROVEMENT_ITERATIONS
+    max_iterations=MAX_IMPROVEMENT_ITERATIONS,
+    before_agent_callback=before_agent_callback,
+    after_agent_callback=after_agent_callback,
 )
 
 # --- Parallel: Multi-Channel Content Creation ---
@@ -44,7 +50,9 @@ parallel_content_creation = ParallelAgent(
         social_media_creator_agent,
         email_newsletter_writer_agent,
         seo_metadata_agent
-    ]
+    ],
+    before_agent_callback=before_agent_callback,
+    after_agent_callback=after_agent_callback,
 )
 
 # --- Full Content Workflow ---
@@ -56,7 +64,9 @@ full_content_workflow = SequentialAgent(
         research_and_draft_workflow,
         quality_improvement_loop,
         parallel_content_creation,
-    ]
+    ],
+    before_agent_callback=before_agent_callback,
+    after_agent_callback=after_agent_callback,
 )
 
 # --- Root Agent ---
@@ -86,6 +96,8 @@ master_orchestrator_agent = Agent(
     after_agent_callback=after_agent_callback,
     before_model_callback=before_model_callback,
     after_model_callback=after_model_callback,
+    before_tool_callback=before_tool_callback,
+    after_tool_callback=after_tool_callback,
 )
 
 # root_agent is used by `adk web` and `run_agent.py`

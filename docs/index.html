@@ -36,7 +36,7 @@
           <hr style="border:none;border-top:1px solid #dadce0;margin:0 0 20px 0;">
           <div style="display:flex;align-items:center;margin-bottom:16px;color:#5f6368;font-size:14px;">
             <svg style="margin-right:16px;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 24 24" fill="#5f6368"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
-            <span>Last updated Apr 28, 2026</span>
+            <span>Last updated Apr 30, 2026</span>
           </div>
           <div style="display:flex;align-items:center;color:#5f6368;font-size:14px;">
             <div style="margin-right:16px;flex-shrink:0;width:20px;height:20px;border-radius:50%;background:#bdc1c6;display:flex;align-items:center;justify-content:center;overflow:hidden;">
@@ -190,10 +190,6 @@ Installed N packages in ...
 </code></pre>
 <aside class="warning"><p>If this is empty, set it with: <code>gcloud config set project YOUR_PROJECT_ID</code></p>
 </aside>
-<p>Set up Application Default Credentials so the Vertex AI SDK can authenticate:</p>
-<pre><code language="language-bash" class="language-bash">gcloud auth application-default login
-</code></pre>
-<p>Follow the browser prompt to log in with your Google account. This writes credentials to <code>~/.config/gcloud/application_default_credentials.json</code>, which the ADK uses automatically when <code>GOOGLE_GENAI_USE_VERTEXAI=1</code>.</p>
 <p>Enable the required GCP APIs:</p>
 <pre><code language="language-bash" class="language-bash">gcloud services enable \
     aiplatform.googleapis.com \
@@ -211,6 +207,10 @@ Installed N packages in ...
     observability.googleapis.com
 </code></pre>
 <p>This takes about 2 minutes. You&#39;ll see <code>Operation finished successfully</code> when done.</p>
+<p>Set up Application Default Credentials so the Vertex AI SDK can authenticate:</p>
+<pre><code language="language-bash" class="language-bash">gcloud auth application-default login
+</code></pre>
+<p>Follow the browser prompt to log in with your Google account. This writes credentials to <code>~/.config/gcloud/application_default_credentials.json</code>, which the ADK uses automatically when <code>GOOGLE_GENAI_USE_VERTEXAI=1</code>.</p>
 <p>Copy the example <code>.env</code> file and open it in the Cloud Shell editor:</p>
 <pre><code language="language-bash" class="language-bash">cp .env.example .env
 cloudshell edit .env
@@ -224,16 +224,6 @@ GOOGLE_GENAI_USE_VERTEXAI=1
 <aside class="special"><p><strong>Why no API key?</strong> The <code>gcloud auth application-default login</code> command you ran sets up <strong>Application Default Credentials</strong>. Setting <code>GOOGLE_GENAI_USE_VERTEXAI=1</code> tells ADK to use those credentials with Vertex AI - no separate API key needed. This applies throughout the entire codelab.</p>
 </aside>
 <p>Save the file (<code>Ctrl+S</code> in the editor), then return to the terminal.</p>
-<h2 is-upgraded>Verify your setup</h2>
-<p>Run:</p>
-<pre><code language="language-bash" class="language-bash">uv run python -c &#34;from google.adk.agents import Agent; print(&#39;ADK ready ✓&#39;)&#34;
-</code></pre>
-<p>👀 <strong>Verify</strong> - you should see:</p>
-<pre><code language="language-text" class="language-text">ADK ready ✓
-</code></pre>
-<p>ADK is installed and importable.</p>
-<aside class="warning"><p><strong>Troubleshooting:</strong> If you see an <code>ImportError</code>, run <code>uv sync</code> from <code>codelab/starter/</code> to reinstall dependencies, then prefix the command with <code>uv run</code> (e.g. <code>uv run python -c "..."</code>).</p>
-</aside>
 
 
       </google-codelab-step>
@@ -328,8 +318,7 @@ Your code / adk web UI    ← reads events, displays the result
 </td><td colspan="1" rowspan="1"><p>If set, the agent&#39;s final text response is saved to <code>session.state[output_key]</code></p>
 </td></tr>
 </table>
-<h2 is-upgraded>Fill in the agent</h2>
-<p>Replace the <code>TODO</code> instruction:</p>
+<h2 is-upgraded>How an agnet is declared in ADK</h2>
 <pre><code language="language-python" class="language-python"># topic_research_agent/agent.py
 from google.adk.agents import Agent
 from google.adk.tools import google_search
@@ -358,6 +347,8 @@ topic_research_agent = Agent(
 
 root_agent = topic_research_agent
 </code></pre>
+<aside class="special"><p><strong>Application-level retries:</strong> ADK agents interact with remote models and APIs that can occasionally time out or hit rate limits (429 errors). The <code>GENERATE_CONTENT_CONFIG</code> (imported from <code>common/retry.py</code>) is configured with 3 retries and a 120-second timeout. Passing this to <code>generate_content_config=</code> ensures your agent is robust against transient network errors and rate limits without you needing to write manual retry loops.</p>
+</aside>
 <p><strong>Why output_key?</strong> Without it, the agent&#39;s response exists only as a conversation message. With <code>output_key="blog_topic"</code>, ADK automatically writes the response text to <code>session.state["blog_topic"]</code> - making it available to every other agent in the pipeline via <code>{blog_topic}</code> templating.</p>
 <h2 is-upgraded>Test the agent</h2>
 <p><code>adk web</code> is ADK&#39;s built-in dev server. It discovers every agent package in your directory and serves a chat UI where you can test them interactively.</p>
@@ -365,16 +356,12 @@ root_agent = topic_research_agent
 <pre><code language="language-bash" class="language-bash">uv run adk web agents --port 8080 \
     --extra_plugins google.adk.plugins.logging_plugin.LoggingPlugin
 </code></pre>
-<aside class="special"><p><strong>Why </strong><strong><code>--extra_plugins ...LoggingPlugin</code></strong><strong>?</strong> Plugins like <code>LoggingPlugin</code> are attached at the <em>runtime</em> level — <code>deploy.py</code> wires it into the <code>AdkApp</code> wrapper for <strong>Agent Runtime</strong>, which is why prompt/response/tool-call logs show up in Cloud Logging once you deploy. But <code>adk web</code> loads <code>root_agent</code> directly and never sees that wrapper, so without the flag you&#39;d see no logging output locally. Passing <code>--extra_plugins</code> tells <code>adk web</code> to attach the same plugin to every agent it runs, so you get matching event-by-event logs in your Cloud Shell terminal during development.</p>
-</aside>
 <p>Then open it in your browser via <strong>Web Preview</strong>:</p>
 <ol type="1">
 <li>Click the <strong>Web Preview</strong> button (top-right of the Cloud Shell toolbar)</li>
 <li>Select <strong>&#34;Preview on port 8080&#34;</strong></li>
 </ol>
 <p>A new browser tab opens with the ADK Dev UI. Select <code>topic_research_agent</code> from the dropdown, then type:</p>
-<aside class="special"><p><strong>How testing works throughout this codelab:</strong> Each individual agent is its own package — <code>adk web</code> discovers all of them automatically. Just select the one you want from the dropdown. Workflow agents (<code>SequentialAgent</code>, <code>LoopAgent</code>, <code>ParallelAgent</code>) are assembled in <code>agents/orchestrator_agent/agent.py</code> and require a temporary <code>root_agent</code> change to test — the instructions will tell you when.</p>
-</aside>
 <pre><code language="language-text" class="language-text">Find the best blog topic about sustainable packaging for eco-conscious millennials
 </code></pre>
 <p>You&#39;ll see the agent call <code>google_search</code> and return a specific title. Expected output in the chat:</p>
@@ -463,22 +450,14 @@ agent = Agent(
     print(f&#34;   Result: {count} words&#34;)
     return count
 </code></pre>
-<h2 is-upgraded>Verify</h2>
-<pre><code language="language-bash" class="language-bash">python -c &#34;
-import sys; sys.path.insert(0, &#39;agents/content_analyzer_agent&#39;)
-from tools import count_words, calculate_readability_score
-print(count_words(&#39;Hello world this is a test&#39;))
-print(calculate_readability_score(&#39;The cat sat on the mat. It was a good day.&#39;))
-&#34;
-</code></pre>
-<p>Expected output:</p>
-<pre><code language="language-text" class="language-text">6
-{&#39;score&#39;: 116.15, &#39;grade&#39;: &#39;Very Easy&#39;, &#39;meets_threshold&#39;: True}
-</code></pre>
-<h2 is-upgraded>See the agent use the tools</h2>
-<p>The unit test above calls the functions directly. Now run the actual agent so you can see the LLM decide <em>when</em> to call each tool and what to do with the results.</p>
-<p>Start the ADK web interface:</p>
-<pre><code language="language-bash" class="language-bash">uv run adk web agents --port 8080 \
+<pre><code>### See the agent use the tools
+
+The unit test above calls the functions directly. Now run the actual agent so you can see the LLM decide *when* to call each tool and what to do with the results.
+
+Start the ADK web interface:
+
+```bash
+uv run adk web agents --port 8080 \
     --extra_plugins google.adk.plugins.logging_plugin.LoggingPlugin
 </code></pre>
 <p>Select <code>content_analyzer_agent</code> from the dropdown, then send:</p>
@@ -550,9 +529,7 @@ content_drafter_agent
 <pre><code language="language-text" class="language-text">blog_topic      → &#34;10 Sustainable Packaging Innovations...&#34;
 current_content → &#34;# 10 Sustainable Packaging Innovations...\n\n...&#34;
 </code></pre>
-<aside class="special"><p><strong>Tip:</strong> Click any event in the Events panel to inspect the exact request and response sent to the model at that step.</p>
-</aside>
-<aside class="special"><p><strong>Pattern in practice: </strong><code>research_and_draft_workflow</code> is a classic <strong>workflow-driven</strong> pipeline - topic research <em>always</em> runs before drafting, with no LLM making that routing decision. This is exactly the &#34;deterministic steps → Sequential&#34; case from the architecture decision framework you reviewed earlier.</p>
+<aside class="special"><p><strong>Pattern in practice: </strong><code>research_and_draft_workflow</code> is a classic <strong>workflow-driven</strong> pipeline - topic research <em>always</em> runs before drafting, with no LLM making that routing decision. This is exactly the &#34;deterministic steps → Sequential&#34; case from the architecture decision framework.</p>
 </aside>
 <p>Press <code>Ctrl+C</code> to stop the server.</p>
 
@@ -581,8 +558,8 @@ current_content → &#34;# 10 Sustainable Packaging Innovations...\n\n...&#34;
 <h2 is-upgraded>The quality checker and content improver</h2>
 <p>Both agents are pre-filled in the starter code:</p>
 <ul>
-<li><strong><code>quality_checker_agent</code></strong> — reads <code>{current_content}</code>, calls <code>calculate_content_quality_score</code> with estimated word count, readability, headings, and conclusion presence. If <code>overall_score >= 70</code> it responds with <code>QUALITY_THRESHOLD_MET</code>; otherwise it lists specific issues.</li>
-<li><strong><code>content_improver_agent</code></strong> — reads <code>{current_content}</code> and <code>{quality_feedback}</code>. If feedback is <code>QUALITY_THRESHOLD_MET</code> it calls <code>exit_loop</code> to stop the loop early. Otherwise it rewrites the content to fix the reported issues and saves the improved version back to <code>current_content</code>.</li>
+<li><strong><code>quality_checker_agent</code></strong> reads <code>{current_content}</code>, calls <code>calculate_content_quality_score</code> with estimated word count, readability, headings, and conclusion presence. If <code>overall_score >= 70</code> it responds with <code>QUALITY_THRESHOLD_MET</code>; otherwise it lists specific issues.</li>
+<li><strong><code>content_improver_agent</code></strong> reads <code>{current_content}</code> and <code>{quality_feedback}</code>. If feedback is <code>QUALITY_THRESHOLD_MET</code> it calls <code>exit_loop</code> to stop the loop early. Otherwise it rewrites the content to fix the reported issues and saves the improved version back to <code>current_content</code>.</li>
 </ul>
 <aside class="special"><p><strong>Note on double braces:</strong> Both instructions are f-strings, so <code>&#123;&#123;current_content}}</code> in Python source becomes <code>{current_content}</code> at runtime — the form ADK needs for session state substitution.</p>
 </aside>
@@ -771,18 +748,16 @@ orchestrator_agent = Agent(
     Always delegate to the appropriate agent.
     &#34;&#34;&#34;,
     sub_agents=[full_content_workflow, content_analyzer_agent],
-    tools=[preload_memory_tool.PreloadMemoryTool()],
+    #tools=[preload_memory_tool.PreloadMemoryTool()],
     generate_content_config=GENERATE_CONTENT_CONFIG,
-    before_agent_callback=before_agent_callback,
-    after_agent_callback=after_agent_callback,
-    before_model_callback=before_model_callback,
-    after_model_callback=after_model_callback,
+    #before_agent_callback=before_agent_callback,
+    #after_agent_callback=after_agent_callback,
+    #before_model_callback=before_model_callback,
+    #after_model_callback=after_model_callback,
 )
 
 root_agent = orchestrator_agent
 </code></pre>
-<aside class="special"><p>The callbacks and <code>PreloadMemoryTool</code> are already imported at the top of <code>agent.py</code>. The callback functions are stubs right now - they&#39;ll do nothing until you fill them in during the <strong>Callbacks</strong> and <strong>Long-Term Memory</strong> sections.</p>
-</aside>
 <aside class="special"><p><strong>sub_agents vs AgentTool:</strong> Using <code>sub_agents=</code> means inner agent events propagate to the <code>Runner</code> and are visible externally (needed for the FastAPI SSE backend to detect which channel agent produced which output). Using <code>AgentTool</code> wraps the agent as an opaque tool call - inner events are hidden. See the <strong>Agent Teams: sub_agents vs AgentTool</strong> section for the full trade-off discussion.</p>
 </aside>
 <h2 is-upgraded>Test routing</h2>
@@ -887,6 +862,8 @@ def before_model_callback(
     callback_context: CallbackContext,
     llm_request: LlmRequest
 ) -&gt; Optional[LlmResponse]:
+    agent_name = callback_context.agent_name
+    print(f&#34;  🤖 Calling model for {agent_name}...&#34;)
     for content in reversed(llm_request.contents or []):
         if content.role == &#34;user&#34;:
             for part in (content.parts or []):
@@ -914,8 +891,29 @@ def after_model_callback(
     if llm_response.content and llm_response.content.parts:
         text = llm_response.content.parts[0].text or &#34;&#34;
         word_count = len(text.split())
-        print(f&#34;  📊 Model output for {agent_name}: ~{word_count} words&#34;)
+        print(f&#34;  ✅ Model responded for {agent_name}: ~{word_count} words&#34;)
+    else:
+        print(f&#34;  ⚠️ Model responded for {agent_name} with empty content&#34;)
     return None  # Use the model response as-is
+</code></pre>
+<h2 is-upgraded>Fill in the tool callbacks (Recommended for debugging)</h2>
+<p>Add these to help track exactly when tools (like <code>google_search</code>) are running and when they finish.</p>
+<pre><code language="language-python" class="language-python">def before_tool_callback(
+    callback_context: CallbackContext,
+    tool_call: types.ToolCall
+) -&gt; None:
+    agent_name = callback_context.agent_name
+    tool_name = tool_call.function_call.name
+    print(f&#34;  🛠️  TOOL START: {agent_name} calling {tool_name}...&#34;)
+
+
+def after_tool_callback(
+    callback_context: CallbackContext,
+    tool_response: types.ToolResponse
+) -&gt; None:
+    agent_name = callback_context.agent_name
+    tool_name = tool_response.function_response.name
+    print(f&#34;  🏁 TOOL DONE: {agent_name} finished {tool_name}&#34;)
 </code></pre>
 <h2 is-upgraded>Test the guardrail</h2>
 <pre><code language="language-bash" class="language-bash">uv run adk web agents --port 8080 \
@@ -1106,15 +1104,13 @@ to create more content on that topic or explore something new?
       </google-codelab-step>
     
       <google-codelab-step label="Deploy to Agent Runtime" duration="0">
-        <aside class="special"><p><strong>Prerequisites:</strong> The Vertex AI API (<code>aiplatform.googleapis.com</code>) enabled on your GCP project — Agent Runtime is part of the <strong>Gemini Enterprise Agent Platform</strong> (the rebranded Vertex AI). Your credentials are already set up from Cloud Shell, so no extra authentication is needed.</p>
-</aside>
-<h2 is-upgraded>What is Agent Runtime?</h2>
+        <h2 is-upgraded>What is Agent Runtime?</h2>
 <p><strong>Agent Runtime</strong> (formerly Vertex AI Agent Engine) is the fully-managed runtime for ADK agents inside the <strong>Gemini Enterprise Agent Platform</strong>. Deploying an agent on Agent Runtime makes it available <strong>remotely</strong> to handle requests — any client (your Cloud Run backend, the in-console playground, scripts, other agents) can call it without ever holding the agent code itself.</p>
 <p><strong>Why deploy here instead of running it yourself?</strong></p>
 <ul>
-<li><strong>Serverless efficiency</strong> — A fully managed runtime deploys and scales agents efficiently with no underlying infrastructure to manage, and gives you reliable performance with built-in observability (Cloud Logging + Cloud Trace + metrics).</li>
-<li><strong>Context management</strong> — Agent Platform Sessions persist conversation state across requests, and Agent Platform Memory Bank stores long-term, personalized memories. Together they let your agents continue conversations and recall facts about users across sessions, instead of starting from scratch each turn.</li>
-<li><strong>Remote availability</strong> — Once deployed, the agent is exposed behind a stable resource name. The Python SDK (<code>agent_engines.get(...)</code>) gives you a remote handle that streams events as if the runner were local. This is what the FastAPI backend in the next section uses.</li>
+<li><strong>Serverless efficiency</strong>: A fully managed runtime deploys and scales agents efficiently with no underlying infrastructure to manage, and gives you reliable performance with built-in observability (Cloud Logging + Cloud Trace + metrics).</li>
+<li><strong>Context management</strong>: Agent Platform Sessions persist conversation state across requests, and Agent Platform Memory Bank stores long-term, personalized memories. Together they let your agents continue conversations and recall facts about users across sessions, instead of starting from scratch each turn.</li>
+<li><strong>Remote availability</strong>: Once deployed, the agent is exposed behind a stable resource name. The Python SDK (<code>agent_engines.get(...)</code>) gives you a remote handle that streams events as if the runner were local. This is what the FastAPI backend in the next section uses.</li>
 </ul>
 <p><strong>Why not just keep running locally?</strong></p>
 <p>Your agent works great in <code>adk web</code>. But local development has hard limits:</p>
@@ -1175,11 +1171,8 @@ to create more content on that topic or explore something new?
 </td><td colspan="1" rowspan="1"><p>Scales to zero</p>
 </td></tr>
 </table>
-<aside class="special"><p><strong>Learning vs production:</strong> The deployment you&#39;ll do in this workshop is for demonstration purposes. Production systems require additional work: comprehensive testing, CI/CD pipelines, model evaluation, and security hardening - topics beyond this codelab&#39;s scope.</p>
-</aside>
-<h2 is-upgraded>Enable the Vertex AI API (aiplatform.googleapis.com) and create a GCS bucket</h2>
-<pre><code language="language-bash" class="language-bash">gcloud services enable aiplatform.googleapis.com
-gcloud storage buckets create gs://$GOOGLE_CLOUD_PROJECT-content-studio --location=us-central1
+<h2 is-upgraded>Create a GCS bucket</h2>
+<pre><code language="language-bash" class="language-bash">gcloud storage buckets create gs://$GOOGLE_CLOUD_PROJECT-content-studio --location=us-central1
 </code></pre>
 <p>Add the bucket to your <code>.env</code>:</p>
 <pre><code language="language-bash" class="language-bash">echo &#34;GOOGLE_CLOUD_STORAGE_BUCKET=gs://$GOOGLE_CLOUD_PROJECT-content-studio&#34; &gt;&gt; .env
@@ -1225,31 +1218,6 @@ Test complete.
 </code></pre>
 <p>You should see the agent run through the full pipeline — research → draft → quality loop → parallel content creation — and return blog post, social media, email newsletter, and SEO metadata.</p>
 <h2 is-upgraded>Inspect traces in Cloud Trace</h2>
-<p>Your <code>deploy.py</code> already enables OpenTelemetry tracing for the deployed agent via three env vars passed to <code>agent_engines.create()</code>:</p>
-<pre><code language="language-python" class="language-python">env_vars={
-    &#34;GOOGLE_CLOUD_AGENT_ENGINE_ENABLE_TELEMETRY&#34;: &#34;true&#34;,
-    &#34;OTEL_SEMCONV_STABILITY_OPT_IN&#34;: &#34;gen_ai_latest_experimental&#34;,
-    &#34;OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT&#34;: &#34;EVENT_ONLY&#34;,
-},
-</code></pre>
-<p>What each one does:</p>
-<table>
-<tr><td colspan="1" rowspan="1"><p>Env var</p>
-</td><td colspan="1" rowspan="1"><p>Effect</p>
-</td></tr>
-<tr><td colspan="1" rowspan="1"><p><code>GOOGLE_CLOUD_AGENT_ENGINE_ENABLE_TELEMETRY</code></p>
-</td><td colspan="1" rowspan="1"><p>Turns on agent traces and logs (no prompt/response payloads). Replaces the older <code>enable_tracing=True</code> flag on <code>AdkApp</code>.</p>
-</td></tr>
-<tr><td colspan="1" rowspan="1"><p><code>OTEL_SEMCONV_STABILITY_OPT_IN</code></p>
-</td><td colspan="1" rowspan="1"><p>Opts in to the latest GenAI semantic conventions for span attributes.</p>
-</td></tr>
-<tr><td colspan="1" rowspan="1"><p><code>OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT</code></p>
-</td><td colspan="1" rowspan="1"><p><code>EVENT_ONLY</code> captures prompt and response content as span events (so you can see what the model saw).</p>
-</td></tr>
-</table>
-<p>The Cloud Trace, Cloud Logging, and Telemetry APIs were already enabled when you ran <code>bash deployment/setup_gcp.sh</code> earlier — no extra step needed.</p>
-<aside class="warning"><p><strong>Pre-GA:</strong> Cloud Trace for Agent Runtime is a Pre-GA feature subject to the &#34;Pre-GA Offerings Terms&#34; in the Google Cloud Service Specific Terms. The span format may change — don&#39;t depend on it being stable.</p>
-</aside>
 <p>After running a query (either from <code>--action test_remote</code> or the playground), view traces in the console:</p>
 <ol type="1">
 <li>Open the <a href="https://console.cloud.google.com/agent-platform/runtimes" target="_blank">Agent Platform Deployments page</a></li>
@@ -1375,16 +1343,6 @@ async def serve_frontend():
 </ul>
 <p>Click <strong>Create Content</strong> — all four channels (Blog Post, Social Media, Email Newsletter, SEO Metadata) should stream in and populate in real time.</p>
 <p class="image-container"><img alt="Full-stack app demo - content streaming in real time" src="img/c5f65e37da2c2765.gif"></p>
-<p>Test the health endpoint to confirm the backend is connected to Agent Runtime:</p>
-<pre><code language="language-bash" class="language-bash">curl https://your-service-url/health
-</code></pre>
-<p>Expected response:</p>
-<pre><code language="language-json" class="language-json">{
-  &#34;status&#34;: &#34;ok&#34;,
-  &#34;agent&#34;: &#34;orchestrator_agent&#34;,
-  &#34;agent_connected&#34;: true
-}
-</code></pre>
 <h2 is-upgraded>Troubleshooting</h2>
 <p><strong>agent_connected: false</strong> - The <code>AGENT_ENGINE_RESOURCE_NAME</code> environment variable wasn&#39;t passed to Cloud Run. Redeploy with it set in your <code>.env</code>.</p>
 <p><strong>Frontend shows blank page</strong> - Check that the Docker build completed without errors and that <code>./static/index.html</code> exists inside the container.</p>

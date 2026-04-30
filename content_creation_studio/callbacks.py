@@ -154,12 +154,10 @@ def before_model_callback(
     callback_context: CallbackContext,
     llm_request: LlmRequest
 ) -> Optional[LlmResponse]:
-    """Content safety guardrail that runs before every LLM call.
-
-    Checks the prompt for blocked topics. If found, returns an LlmResponse
-    directly (skipping the actual model call) with a safety message.
-    Returning None means: proceed with the normal model call.
-    """
+    """Content safety guardrail that runs before every LLM call."""
+    agent_name = callback_context.agent_name
+    print(f"  🤖 Calling model for {agent_name}...")
+    
     if llm_request.contents:
         last_content = llm_request.contents[-1]
         if last_content.parts:
@@ -176,21 +174,43 @@ def before_model_callback(
                             role="model"
                         )
                     )
-    return None  # Proceed with the model call
+    return None
 
 
 def after_model_callback(
     callback_context: CallbackContext,
     llm_response: LlmResponse
 ) -> Optional[LlmResponse]:
-    """Logs model response metrics after each LLM call.
-
-    Returning None means: use the model's response as-is.
-    Returning a modified LlmResponse would replace the model's response.
-    """
+    """Logs model response metrics after each LLM call."""
     agent_name = callback_context.agent_name
     if llm_response.content and llm_response.content.parts:
         text = llm_response.content.parts[0].text or ""
         word_count = len(text.split())
-        print(f"  📊 Model output for {agent_name}: ~{word_count} words")
-    return None  # Use model response as-is
+        print(f"  ✅ Model responded for {agent_name}: ~{word_count} words")
+    else:
+        print(f"  ⚠️ Model responded for {agent_name} with empty content")
+    return None
+
+
+# =============================================================================
+# TOOL CALLBACKS
+# =============================================================================
+
+def before_tool_callback(
+    callback_context: CallbackContext,
+    tool_call: types.ToolCall
+) -> None:
+    """Logs when a tool is called."""
+    agent_name = callback_context.agent_name
+    tool_name = tool_call.function_call.name
+    print(f"  🛠️  TOOL START: {agent_name} calling {tool_name}...")
+
+
+def after_tool_callback(
+    callback_context: CallbackContext,
+    tool_response: types.ToolResponse
+) -> None:
+    """Logs when a tool finishes."""
+    agent_name = callback_context.agent_name
+    tool_name = tool_response.function_response.name
+    print(f"  🏁 TOOL DONE: {agent_name} finished {tool_name}")

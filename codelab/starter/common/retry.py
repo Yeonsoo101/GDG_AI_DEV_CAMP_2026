@@ -9,12 +9,15 @@ LlmAgent so each model call retries with exponential backoff before giving up.
 from google.genai import types
 
 RETRY_CONFIG = types.HttpRetryOptions(
-    attempts=5,
-    exp_base=7,
+    attempts=3,
+    exp_base=2,
     initial_delay=1,
     http_status_codes=[429, 500, 503, 504],
 )
 
 GENERATE_CONTENT_CONFIG = types.GenerateContentConfig(
-    http_options=types.HttpOptions(retry_options=RETRY_CONFIG),
+    http_options=types.HttpOptions(
+        retry_options=RETRY_CONFIG,
+        timeout=120, # 2 minute timeout for model calls
+    ),
 )
