@@ -450,14 +450,10 @@ agent = Agent(
     print(f&#34;   Result: {count} words&#34;)
     return count
 </code></pre>
-<pre><code>### See the agent use the tools
-
-The unit test above calls the functions directly. Now run the actual agent so you can see the LLM decide *when* to call each tool and what to do with the results.
-
-Start the ADK web interface:
-
-```bash
-uv run adk web agents --port 8080 \
+<h2 is-upgraded>See the agent use the tools</h2>
+<p>The unit test above calls the functions directly. Now run the actual agent so you can see the LLM decide <em>when</em> to call each tool and what to do with the results.</p>
+<p>Start the ADK web interface:</p>
+<pre><code language="language-bash" class="language-bash">uv run adk web agents --port 8080 \
     --extra_plugins google.adk.plugins.logging_plugin.LoggingPlugin
 </code></pre>
 <p>Select <code>content_analyzer_agent</code> from the dropdown, then send:</p>
@@ -1175,7 +1171,7 @@ to create more content on that topic or explore something new?
 <pre><code language="language-bash" class="language-bash">gcloud storage buckets create gs://$GOOGLE_CLOUD_PROJECT-content-studio --location=us-central1
 </code></pre>
 <p>Add the bucket to your <code>.env</code>:</p>
-<pre><code language="language-bash" class="language-bash">echo &#34;GOOGLE_CLOUD_STORAGE_BUCKET=gs://$GOOGLE_CLOUD_PROJECT-content-studio&#34; &gt;&gt; .env
+<pre><code language="language-bash" class="language-bash">printf &#34;\nGOOGLE_CLOUD_STORAGE_BUCKET=gs://%s-content-studio\n&#34; &#34;$GOOGLE_CLOUD_PROJECT&#34; &gt;&gt; .env 
 </code></pre>
 <h2 is-upgraded>Deploy</h2>
 <pre><code language="language-bash" class="language-bash">uv run python deployment/deploy.py --action deploy
@@ -1336,7 +1332,7 @@ async def serve_frontend():
 <h2 is-upgraded>Test the full stack</h2>
 <p>Open the URL in your browser. You should see the React UI. Fill in the form with:</p>
 <ul>
-<li><strong>Topic:</strong> AI tools for freelancers in 2025</li>
+<li><strong>Topic:</strong> AI tools for freelancers in 2026</li>
 <li><strong>Target Audience:</strong> Independent professionals and solopreneurs</li>
 <li><strong>Tone:</strong> Practical and motivating</li>
 <li><strong>Keywords:</strong> AI freelance, automation, productivity tools</li>
