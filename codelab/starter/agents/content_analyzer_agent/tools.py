@@ -7,7 +7,9 @@ def count_words(text: str) -> int:
     # TODO: #REPLACE-count-words
     # Split text on whitespace and return the count.
     print(f"🔧 Tool: Counting words...")
-    pass  # Replace this line
+    count = len(text.split())
+    print(f"   Result: {count} words")
+    return count
 
 
 def calculate_readability_score(text: str) -> dict:

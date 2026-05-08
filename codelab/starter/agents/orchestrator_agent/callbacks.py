@@ -36,87 +36,95 @@ def _extract_session_id(session) -> str:
 # =============================================================================
 
 def before_agent_callback(callback_context: CallbackContext) -> Optional[types.Content]:
-    """Logs when an agent starts execution and tracks start time.
-
-    Returning None means: proceed with normal agent execution.
-    Returning a types.Content would skip the agent entirely.
-    """
-    # TODO: #REPLACE-before-agent-callback
-    # 1. Get agent_name from callback_context.agent_name
-    # 2. Get session from callback_context._invocation_context.session
-    # 3. Get session_id using _extract_session_id(session)
-    # 4. Print a start banner:
-    #       print(f"\n{'─'*50}")
-    #       print(f"▶ AGENT START: {agent_name}")
-    #       print(f"{'─'*50}")
-    # 5. Store time.time() in _agent_execution_tracker[f"{agent_name}:{session_id}"]
-    # 6. Return None to proceed normally
-    pass
+    agent_name = callback_context.agent_name
+    session = callback_context._invocation_context.session
+    session_id = _extract_session_id(session)
+    print(f"\n{'─'*50}")
+    print(f"▶ AGENT START: {agent_name}")
+    print(f"{'─'*50}")
+    execution_key = f"{agent_name}:{session_id}"
+    _agent_execution_tracker[execution_key] = time.time()
+    return None  # Proceed normally
 
 
 async def after_agent_callback(callback_context: CallbackContext) -> Optional[types.Content]:
-    """Logs agent completion and auto-saves session to Memory."""
-    # TODO: #REPLACE-after-agent-callback
-    # 1. Get memory_service from callback_context._invocation_context.memory_service
-    # 2. Get session from callback_context._invocation_context.session
-    # 3. Get agent_name from callback_context.agent_name (use getattr with default 'unknown')
-    # 4. Get session_id using _extract_session_id(session)
-    # 5. Look up execution_key = f"{agent_name}:{session_id}" in _agent_execution_tracker
-    #    If found, pop it and compute total_execution_time = time.time() - start_time
-    #    Print "■ AGENT DONE: {agent_name} ({total_execution_time:.1f}s)"
-    #    If total_execution_time > 20: logger.warning("Slow agent: %s took %.2fs", ...)
-    # 6. If memory_service is not None and has 'add_session_to_memory':
-    #       await memory_service.add_session_to_memory(session)
-    #       Print how many events were saved
-    # 7. Return None
-    pass
+    try:
+        memory_service = callback_context._invocation_context.memory_service
+        session = callback_context._invocation_context.session
+        agent_name = getattr(callback_context, 'agent_name', 'unknown')
+        session_id = _extract_session_id(session)
+        execution_key = f"{agent_name}:{session_id}"
+        if execution_key in _agent_execution_tracker:
+            total_execution_time = time.time() - _agent_execution_tracker.pop(execution_key)
+            print(f"\n{'─'*50}")
+            print(f"■ AGENT DONE: {agent_name} ({total_execution_time:.1f}s)")
+            print(f"{'─'*50}")
+            if total_execution_time > 20:
+                logger.warning("Slow agent: %s took %.2fs", agent_name, total_execution_time)
+        if memory_service and hasattr(memory_service, 'add_session_to_memory'):
+            events = getattr(session, 'events', [])
+            await memory_service.add_session_to_memory(session)
+            print(f"  💾 Session saved to memory ({len(events)} events)")
+    except Exception as e:
+        logger.error("after_agent_callback error: %s", e)
+    return None
 
 
 # =============================================================================
 # MODEL CALLBACKS
 # =============================================================================
+BLOCKED_TOPICS = ["violence", "illegal", "harmful", "hate speech"]
 
 def before_model_callback(
     callback_context: CallbackContext,
     llm_request: LlmRequest
 ) -> Optional[LlmResponse]:
-    """Content safety guardrail that runs before every LLM call.
-
-    Returning None means: proceed with the normal model call.
-    Returning an LlmResponse skips the actual model call entirely.
-    """
-    # TODO: #REPLACE-before-model-callback
-    # 1. Iterate backwards through llm_request.contents to find the last user message:
-    #       for content in reversed(llm_request.contents):
-    #           if content.role == "user":
-    #               ...check parts...
-    #               break
-    # 2. For each part in that content's parts, get text = part.text or ""
-    # 3. Convert text to lowercase and check if any word in BLOCKED_TOPICS is in it
-    # 4. If found, print a guardrail message and return:
-    #    LlmResponse(content=types.Content(
-    #        parts=[types.Part.from_text(
-    #            text=f"I cannot generate content about '{topic}'. Please provide a different topic."
-    #        )],
-    #        role="model"
-    #    ))
-    # 5. Return None to proceed with the normal model call
-    pass
+    agent_name = callback_context.agent_name
+    print(f"  🤖 Calling model for {agent_name}...")
+    for content in reversed(llm_request.contents or []):
+        if content.role == "user":
+            for part in (content.parts or []):
+                text = (part.text or "").lower()
+                for topic in BLOCKED_TOPICS:
+                    if topic in text:
+                        print(f"  🛡️ GUARDRAIL: Blocked request containing '{topic}'")
+                        return LlmResponse(
+                            content=types.Content(
+                                parts=[types.Part.from_text(
+                                    text=f"I cannot generate content about '{topic}'. Please provide a different topic."
+                                )],
+                                role="model"
+                            )
+                        )
+            break  # only check the most recent user message
+    return None  # Proceed with the model call
 
 
 def after_model_callback(
     callback_context: CallbackContext,
     llm_response: LlmResponse
 ) -> Optional[LlmResponse]:
-    """Logs model response metrics after each LLM call.
+    agent_name = callback_context.agent_name
+    if llm_response.content and llm_response.content.parts:
+        text = llm_response.content.parts[0].text or ""
+        word_count = len(text.split())
+        print(f"  ✅ Model responded for {agent_name}: ~{word_count} words")
+    else:
+        print(f"  ⚠️ Model responded for {agent_name} with empty content")
+    return None  # Use the model response as-is
+def before_tool_callback(
+    callback_context: CallbackContext,
+    tool_call: types.ToolCall
+) -> None:
+    agent_name = callback_context.agent_name
+    tool_name = tool_call.function_call.name
+    print(f"  🛠️  TOOL START: {agent_name} calling {tool_name}...")
 
-    Returning None means: use the model's response as-is.
-    """
-    # TODO: #REPLACE-after-model-callback
-    # 1. Get agent_name from callback_context.agent_name
-    # 2. If llm_response.content and llm_response.content.parts exist:
-    #       text = llm_response.content.parts[0].text or ""
-    #       word_count = len(text.split())
-    #       print(f"  📊 Model output for {agent_name}: ~{word_count} words")
-    # 3. Return None to use the model response as-is
-    pass
+
+def after_tool_callback(
+    callback_context: CallbackContext,
+    tool_response: types.ToolResponse
+) -> None:
+    agent_name = callback_context.agent_name
+    tool_name = tool_response.function_response.name
+    print(f"  🏁 TOOL DONE: {agent_name} finished {tool_name}")    
