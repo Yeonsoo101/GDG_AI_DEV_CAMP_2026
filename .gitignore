@@ -1,5 +1,8 @@
 # Environment variables
 .env
+credentials.json
+token.json
+
 
 # Large media files
 codelab/diagrams/full stack app mas demo.mp4
