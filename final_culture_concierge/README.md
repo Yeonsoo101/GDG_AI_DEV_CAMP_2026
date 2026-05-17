@@ -107,6 +107,8 @@ adk web --port 8000
 Open [http://127.0.0.1:8000](http://127.0.0.1:8000), select `concierge` from the dropdown, start chatting.
 
 ---
+<img width="1105" height="520" alt="image" src="https://github.com/user-attachments/assets/ef917db8-399b-489b-8ce4-4adeacde3ddd" />
+
 
 ## What's next
 
