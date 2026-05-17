@@ -1,12 +1,38 @@
+import sys
+from pathlib import Path
+
 from google.adk.agents.llm_agent import Agent
-from planner_tools import check_calendar, save_to_shortlist
+from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, StdioConnectionParams
+from mcp import StdioServerParameters
+
+# Fallback: direct Python import. Uncomment + swap the `tools=` line below
+# if the MCP server breaks during testing.
+# from planner_tools import check_calendar, save_to_shortlist
+
+
+# Spawn the MCP server as a stdio subprocess of ADK.
+# agent.py → planner_agent → agents → final_culture_concierge → mcp_server/server.py
+MCP_SERVER_PATH = (
+    Path(__file__).resolve().parent.parent.parent / "mcp_server" / "server.py"
+)
+
+mcp_toolset = MCPToolset(
+    connection_params=StdioConnectionParams(
+        server_params=StdioServerParameters(
+            command=sys.executable,  # use the same Python that runs ADK
+            args=[str(MCP_SERVER_PATH)],
+        ),
+        timeout=30,  # generous, in case cold imports take a moment
+    )
+)
 
 
 planner_agent = Agent(
     model="gemini-2.5-flash",
     name="planner_agent",
     description="Plan an evening around a chosen classical music concert",
-    tools=[check_calendar, save_to_shortlist],
+    tools=[mcp_toolset],
+    # Fallback: tools=[check_calendar, save_to_shortlist],
     instruction="""
     You are the user's evening planner for classical music outings in London.
 

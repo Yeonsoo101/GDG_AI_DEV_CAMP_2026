@@ -1,0 +1,19 @@
+google-adk
+google-genai
+tavily-python
+python-dotenv
+pydantic
+
+# Google Calendar
+google-auth
+google-auth-oauthlib
+google-api-python-client
+
+# MCP server
+mcp
+
+# Persistence
+supabase
+
+# Windows-only: required for ZoneInfo to find timezone data
+tzdata; sys_platform == "win32"
